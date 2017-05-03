@@ -4,14 +4,25 @@ CFLAGS = -Wall -g -fPIE -D_FORTIFY_SOURCE=2 -fstack-protector-strong -fwrapv --p
 
 SOURCES = chains.c ovpn.c ovpn_crypto.c ovpn_tcp_src.c ovpn_filter.c \
 	ovpn_lzo.c write_sink.c read_src.c ovpn_hmac.c mt_write_sink.c \
-	ovpn_encap.c ovpn_ctl.c timer.c queue.c buffer.c copy.c
-	
-LIBS = -lpthread -lcrypto -llzo2
+	ovpn_encap.c ovpn_ctl.c timer.c queue.c buffer.c copy.c ovpn_lua.c
 
-all:
-	$(CC) $(CFLAGS) -shared -fPIC -o ovpn.so -I/usr/include/lua5.2 $(SOURCES) ovpn_lua.c $(LIBS) -llua5.2
-	$(CC) $(CFLAGS) -shared -fPIC -o seccomp.so -I/usr/include/lua5.2 seccomp_lua.c -llua5.2
+OBJECTS = $(patsubst %.c, %.o, $(SOURCES))
+TARGETS = seccomp.so ovpn.so
+
+LIBS = -lpthread -lcrypto -llzo2 -llua5.2
+INCLUDES = -I/usr/include/lua5.2
+
+all: $(TARGETS)
+
+%.o:%.c
+	$(CC) $(CFLAGS) -shared -fPIC -c -o $@ $< $(INCLUDES)
+
+ovpn.so: $(OBJECTS)
+	$(CC) $(CFLAGS) -shared -fPIC -o ovpn.so $(OBJECTS) $(LIBS)
+
+seccomp.so:
+	$(CC) $(CFLAGS) -shared -fPIC -o seccomp.so seccomp_lua.c $(INCLUDES) $(LIBS)
 
 clean:
-	rm -f *.o *.so
+	rm -f $(OBJECTS) $(TARGETS)
 
