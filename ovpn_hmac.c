@@ -46,7 +46,7 @@ static int work_hash(chains_t *chains, node_t *n) {
 	}
 	
 	buf_prepend(ib, 20);
-	res = hmac(&key->hmac_tx, src, src_len, ib->ptr+1);
+	res = hmac(key->hmac_tx, src, src_len, ib->ptr+1);
 	
 	pthread_rwlock_unlock(&key->lock);
 	
@@ -78,7 +78,7 @@ static int work_verify(chains_t *chains, node_t *n) {
 		goto drop;
 	}
 	
-	res = hmac(&key->hmac_rx, ib->ptr+1, ib->len-1, hmac_buf);
+	res = hmac(key->hmac_rx, ib->ptr+1, ib->len-1, hmac_buf);
 	
 	pthread_rwlock_unlock(&key->lock);
 	

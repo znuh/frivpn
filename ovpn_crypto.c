@@ -70,9 +70,9 @@ static int encrypt(chains_t *chains, node_t *n) {
 	pid = ++key->tx_pid; /* packet ID */
 	*((uint32_t *)ib->ptr) = htonl(pid);
 	
-	res=EVP_EncryptInit_ex(&key->evp_enc, NULL, NULL, NULL, iv_ptr);
-	EVP_EncryptUpdate(&key->evp_enc, od_ptr, &c_len, ib->ptr, ib->len);
-	EVP_EncryptFinal_ex(&key->evp_enc, od_ptr+c_len, &f_len);
+	res=EVP_EncryptInit_ex(key->evp_enc, NULL, NULL, NULL, iv_ptr);
+	EVP_EncryptUpdate(key->evp_enc, od_ptr, &c_len, ib->ptr, ib->len);
+	EVP_EncryptFinal_ex(key->evp_enc, od_ptr+c_len, &f_len);
 	
 	pthread_rwlock_unlock(&key->lock);
 	
@@ -118,9 +118,9 @@ static int decrypt(chains_t *chains, node_t *n) {
 		return 0;
 	}
 
-	EVP_DecryptInit_ex(&key->evp_dec, NULL, NULL, NULL, iv);
-	EVP_DecryptUpdate(&key->evp_dec, ob->ptr, &c_len, ib->ptr, ib->len);
-	EVP_DecryptFinal_ex(&key->evp_dec, ob->ptr + c_len, &f_len);	
+	EVP_DecryptInit_ex(key->evp_dec, NULL, NULL, NULL, iv);
+	EVP_DecryptUpdate(key->evp_dec, ob->ptr, &c_len, ib->ptr, ib->len);
+	EVP_DecryptFinal_ex(key->evp_dec, ob->ptr + c_len, &f_len);	
 
 	update_stats(&crypto->dec_stats, c_len + f_len);
 	

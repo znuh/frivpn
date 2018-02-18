@@ -48,9 +48,9 @@ int ovpn_ctl_getsock(ovpn_t *ovpn) {
 
 void ovpn_ctl_config(ovpn_t *ovpn, const uint8_t *hmac_txkey, const uint8_t *hmac_rxkey) {
 	struct ctl_s *ctl = &ovpn->ctl;
-	int res = HMAC_Init_ex(&ctl->hmac_tx, hmac_txkey, 20, EVP_sha1(), NULL);
+	int res = HMAC_Init_ex(ctl->hmac_tx, hmac_txkey, 20, EVP_sha1(), NULL);
 	assert(res == 1);
-	res = HMAC_Init_ex(&ctl->hmac_rx, hmac_rxkey, 20, EVP_sha1(), NULL);
+	res = HMAC_Init_ex(ctl->hmac_rx, hmac_rxkey, 20, EVP_sha1(), NULL);
 	assert(res == 1);
 }
 
@@ -180,7 +180,7 @@ static int ctl_putheader(struct ctl_s *ctl, buf_t *ob, uint8_t op) {
 	
 	hdr->ack_len 	= n_acks;
 	
-	ctl_hmac(&ctl->hmac_tx, hdr, ob->len, 0);
+	ctl_hmac(ctl->hmac_tx, hdr, ob->len, 0);
 	
 	res = ob->len;
 	
@@ -289,7 +289,7 @@ int ovpn_process_ctl(chains_t *chains, struct ctl_s *ctl, buf_t *ib) {
 	buf_consume(ib, sizeof(struct ovpn_hdr_s));
 	
 	/* check HMAC */
-	res = ctl_hmac(&ctl->hmac_rx, hdr, orig_len, 1);
+	res = ctl_hmac(ctl->hmac_rx, hdr, orig_len, 1);
 	if(res)
 		goto drop;
 	
@@ -406,14 +406,14 @@ void ovpn_ctl_setkeys(ovpn_t *ovpn, const uint8_t *keys) {
 	/* update key */
 	pthread_rwlock_wrlock(&key->lock);
 	
-	res = EVP_EncryptInit_ex(&key->evp_enc, EVP_aes_256_cbc(), NULL, keys, NULL);
+	res = EVP_EncryptInit_ex(key->evp_enc, EVP_aes_256_cbc(), NULL, keys, NULL);
 	assert(res == 1);
-	res = HMAC_Init_ex(&key->hmac_tx, keys+64, 20, EVP_sha1(), NULL);
+	res = HMAC_Init_ex(key->hmac_tx, keys+64, 20, EVP_sha1(), NULL);
 	assert(res == 1);
 	
-	res = EVP_DecryptInit_ex(&key->evp_dec, EVP_aes_256_cbc(), NULL, keys+128, NULL);
+	res = EVP_DecryptInit_ex(key->evp_dec, EVP_aes_256_cbc(), NULL, keys+128, NULL);
 	assert(res == 1);
-	res = HMAC_Init_ex(&key->hmac_rx, keys+192, 20, EVP_sha1(), NULL);
+	res = HMAC_Init_ex(key->hmac_rx, keys+192, 20, EVP_sha1(), NULL);
 	assert(res == 1);
 	
 	pthread_rwlock_unlock(&key->lock);

@@ -39,10 +39,10 @@ struct prng_s {
 };
 
 struct key_s {
-	EVP_CIPHER_CTX evp_dec;
-	EVP_CIPHER_CTX evp_enc;
-	HMAC_CTX hmac_tx;
-	HMAC_CTX hmac_rx;
+	EVP_CIPHER_CTX *evp_dec;
+	EVP_CIPHER_CTX *evp_enc;
+	HMAC_CTX *hmac_tx;
+	HMAC_CTX *hmac_rx;
 	uint32_t rx_pid;
 	uint32_t tx_pid;
 	pthread_rwlock_t lock;
@@ -81,8 +81,8 @@ struct ctl_s {
 	
 	int ctl_sock[2];
 
-	HMAC_CTX hmac_tx;
-	HMAC_CTX hmac_rx;
+	HMAC_CTX *hmac_tx;
+	HMAC_CTX *hmac_rx;
 
 	int key_id;
 	struct ctl_state_s tx_state;
