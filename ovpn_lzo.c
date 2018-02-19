@@ -1,7 +1,7 @@
 /*
- * 
+ *
  * Copyright (C) 2017 Benedikt Heinz <Zn000h AT gmail.com>
- * 
+ *
  * This is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -54,7 +54,7 @@ static int compress(chains_t *chains, node_t *n) {
 	buf_t *ob = n->outbuf;
 	struct ctx_s *c = n->priv;
 	int compress = c->compress && (ib->len >= LZO_THRESHOLD);
-	
+
 	if(compress) {
 		lzo_uint clen=0;
 		buf_reset(ob, 64);
@@ -65,7 +65,7 @@ static int compress(chains_t *chains, node_t *n) {
 		ob = n->outbuf = ib;
 	buf_prepend(ob, 1);
 	*ob->ptr = compress ? MAGIC_COMPRESSED : MAGIC_UNCOMPRESSED;
-	
+
 	return ob->len;
 }
 

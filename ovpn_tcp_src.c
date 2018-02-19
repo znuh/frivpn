@@ -1,7 +1,7 @@
 /*
- * 
+ *
  * Copyright (C) 2017 Benedikt Heinz <Zn000h AT gmail.com>
- * 
+ *
  * This is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -46,15 +46,15 @@ static int init(chains_t *chains, node_t *n) {
 	ctx_t *c;
 	n->priv = malloc(sizeof(ctx_t));
 	c = n->priv;
-	
+
 	memset(c, 0, sizeof(ctx_t));
 	c->bufsz = 256*1024;
 	c->rbuf = malloc(c->bufsz);
 	c->get = c->rbuf;
 	c->put = c->rbuf;
-	
+
 	//n->outbuf = &c->obuf;
-	
+
 	return 0;
 }
 
@@ -90,13 +90,13 @@ static int work(chains_t *chains, node_t *n) {
 	buf_t *obuf = n->outbuf;
 	uint32_t fsize;
 	int res=0;
-	
+
 	/* release last frame */
 	if(c->last_fsize) {
 		c->fill -= c->last_fsize;
 		c->get += c->last_fsize;
 		c->last_fsize = 0;
-		
+
 		/* reset buffer pointers if trivial or if not much space left */
 		if(!c->fill)
 			c->get = c->put = c->rbuf;
@@ -106,7 +106,7 @@ static int work(chains_t *chains, node_t *n) {
 			c->put = c->rbuf + c->fill;
 		}
 	}
-	
+
 	/* new read necessary or still sufficient old data available? */
 	if((c->fill < 3) || ((fsize = frame_size(c->get)) > c->fill)) {
 		res = sock_read(n->fd, c);
@@ -114,23 +114,23 @@ static int work(chains_t *chains, node_t *n) {
 		if(res <= 0)
 			return res;
 	}
-	
+
 	/* still insufficient data? */
 	if(c->fill < (fsize = frame_size(c->get)))
 		return 0;
-	
+
 	/* release frame upon next call */
 	c->last_fsize = fsize;
-	
+
 	//buf_reset(obuf, 0);
 	memcpy(obuf->d, c->get, fsize);
 //	obuf->d = obuf->ptr = c->get;
 	obuf->ofs=0;
 	obuf->len = obuf->maxlen = fsize;
-	
+
 	/* is there another complete frame in the buffer? */
 	n->flags = check_residue(c, fsize);
-	
+
 	return fsize;
 }
 

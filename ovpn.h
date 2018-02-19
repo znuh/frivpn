@@ -58,10 +58,10 @@ struct crypto_s {
 	uint32_t valid_keys;
 	int tx_key;
 	pthread_rwlock_t lock;
-	
+
 	struct crypto_stats_s enc_stats;
 	struct crypto_stats_s dec_stats;
-	
+
 	// TODO: IV, chiper spec, etc.
 	struct prng_s prng;
 	uint32_t flags;
@@ -78,7 +78,7 @@ struct ctl_state_s {
 
 struct ctl_s {
 	uint32_t debug;
-	
+
 	int ctl_sock[2];
 
 	HMAC_CTX *hmac_tx;
@@ -92,10 +92,10 @@ struct ctl_s {
 	node_t *tls_write;
 	node_t *tls_read;
 	node_t *lzo_comp;
-	
+
 	time64_t last_rx; /* used for timeout detection */
 	ctimer_t *ping_timer;
-	
+
 	struct crypto_s crypto;
 };
 
@@ -112,7 +112,7 @@ typedef struct ovpn_s {
 	chains_t *chains;
 	node_t *sock_read;
 	node_t *sock_write;
-	
+
 	uint32_t flags;
 } ovpn_t;
 

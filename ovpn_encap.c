@@ -1,7 +1,7 @@
 /*
- * 
+ *
  * Copyright (C) 2017 Benedikt Heinz <Zn000h AT gmail.com>
- * 
+ *
  * This is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -48,16 +48,16 @@ void ovpn_rx(chains_t *chains, struct ctl_s *ctl);
 
 static int decap(chains_t *chains, node_t *n) {
 	buf_t *ib = n->inbuf;
-	
+
 	/* remove length but leave opcode intact
 	 * as it contains the key-id  */
 	buf_consume(ib, 2);
-		
+
 	assert(ib->len > 1);
-	
+
 	// needs mutex or disable NI_ALLOW_MULTI
 	//ovpn_rx(chains, (struct ctl_s *)n->ctx);
-	
+
 	/* handle control/ack packets */
 	if((ib->ptr[0]>>3) != 6) { /* DATA_V1 */
 		ovpn_process_ctl(chains, (struct ctl_s *)n->ctx, ib);
@@ -65,7 +65,7 @@ static int decap(chains_t *chains, node_t *n) {
 		stats_outdated(chains, n->thread_id);
 		//return 0; /* prevent double discard */
 	}
-	
+
 	return ib->len;
 }
 

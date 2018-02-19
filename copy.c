@@ -1,7 +1,7 @@
 /*
- * 
+ *
  * Copyright (C) 2017 Benedikt Heinz <Zn000h AT gmail.com>
- * 
+ *
  * This is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -27,7 +27,7 @@
 static int memcopy(chains_t *chains, node_t *n) {
 	buf_t *ib = n->inbuf;
 	buf_t *ob = n->outbuf;
-	
+
 	buf_reset(ob,ib->ofs);
 	buf_assertspace(ob,ib->len);
 	memcpy(ob->ptr,ib->ptr,ib->len);

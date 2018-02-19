@@ -1,7 +1,7 @@
 /*
- * 
+ *
  * Copyright (C) 2017 Benedikt Heinz <Zn000h AT gmail.com>
- * 
+ *
  * This is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -47,7 +47,7 @@ static const char *flags2str(uint32_t flags) {
 	for(i=0;flag_names[i];i++) {
 		if(flags&1)
 			strcat(flagbuf,flag_names[i]);
-		flags>>=1;		
+		flags>>=1;
 	}
 	return flagbuf;
 }
@@ -69,21 +69,21 @@ static inline void stats_update(chains_t *chains, node_t *node) {
 	thread_t *thread = chains->threads + node->thread_id;
 	node_stats_t *ns = node->stats;
 	time64_t now, last;
-	
+
 	/* assume trivial nodes consume 0 cputime */
 	if( (!(chains->flags & CHAINS_STATS_EN)) || (ni->flags & NI_TRIVIAL))
 		return;
-	
+
 	last = thread->last_stats;
-	
+
 	/* get current time and set last to now */
 	now = chains_gettime(chains, 1);
 	thread->last_stats = now;
-	
+
 	/* done if no node-stats needed */
 	if ((!ns) || (node->flags & NF_NOSTATS))
 		return;
-	
+
 	now -= last;
 	thread->total_cputime += now;
 	ns->cputime += now;
@@ -150,7 +150,7 @@ chains_t *chains_create(int threads) {
  * if node is needed often you should save the node pointer */
 node_t *chains_findnode(chains_t *chains, const char *name) {
 	struct list_head *pos;
-	
+
 	list_for_each(pos, &chains->nodes){
 		node_t *n= list_entry(pos, node_t, list);
 		if(!strcmp(n->name, name)) {
@@ -164,21 +164,21 @@ node_t *chains_findnode(chains_t *chains, const char *name) {
 node_t *chains_mknode(chains_t *chains, const node_info_t *ni, const char *name, int thread_id, node_t *dst_node) {
 	node_t *n = chains_findnode(chains, name);
 	thread_t *thread = chains->threads + thread_id;
-	
+
 	if(n)
 		goto done;
-	
+
 	assert(thread_id < chains->n_threads);
-	
+
 	n = calloc(1,sizeof(node_t));
 	n->fd = -1; // important! 0 is a valid fd (stdin)
 	n->thread_id = thread_id;
 	pthread_mutex_init(&n->mtx, NULL);
-	
+
 	n->name = strdup(name);
 	n->ni = ni;
 	n->dst = dst_node;
-	
+
 	/* node stats */
 	if(!(ni->flags & NI_TRIVIAL))
 		n->stats = calloc(1,sizeof(node_stats_t));
@@ -186,7 +186,7 @@ node_t *chains_mknode(chains_t *chains, const node_info_t *ni, const char *name,
 	// register node with chains
 	list_add_tail(&n->list, &chains->nodes);
 	chains->n_nodes++;
-	
+
 	if(ni->flags & (NI_SOURCE|NI_SINK))
 		thread->n_ionodes++;
 
@@ -257,9 +257,9 @@ static inline void wakeup_thread(thread_t *thread) {
 
 void chains_destroy(chains_t *chains) {
 	int i;
-	
+
 	chains->quit = 1;
-	
+
 	for(i=0;i<chains->n_threads;i++) {
 		thread_t *thread = chains->threads + i;
 		printf("shutdown thread %d\n",i);
@@ -274,41 +274,41 @@ void node_update_pollout(chains_t *chains, node_t *node) {
 	struct epoll_event ev;
 	int res;
 	assert(node);
-	
+
 	assert(NI_IS_SINK(node->ni));
-	
+
 	assert(node->fd >= 0);
-	
+
 	ev.events = (node->flags & NF_SINK_RESIDUE) ? EPOLLOUT : 0;
-	
+
 	if(ev.events == node->epoll_cfg)
 		return;
-	
+
 	node->epoll_cfg = ev.events;
-	
+
 	ev.data.ptr = node;
 	res = epoll_ctl(thread->epoll_fd, EPOLL_CTL_MOD, node->fd, &ev);
-	assert(!res);	
+	assert(!res);
 }
 
 void node_setfd(chains_t *chains, node_t *node, int fd) {
 	thread_t *thread = chains->threads + node->thread_id;
 	int res;
 	assert(node);
-	
+
 	pthread_mutex_lock(&node->mtx);
-	
+
 	if(thread->epoll_fd < 0) {
 		node->fd = fd;
 		goto out;
 	}
-	
+
 	if(node->fd == fd)
 		goto out;
-	
+
 	if(chains->debug)
 		printf("node_setfd %s old %d new %d np %p\n",node->name,node->fd,fd,node);
-	
+
 	/* old fd valid? delete if true */
 	if(node->fd >= 0) {
 		res = epoll_ctl(thread->epoll_fd, EPOLL_CTL_DEL, node->fd, NULL);
@@ -316,9 +316,9 @@ void node_setfd(chains_t *chains, node_t *node, int fd) {
 		node->fd = -1;
 		node->epoll_cfg = 0;
 	}
-	
+
 	node->fd = fd;
-	
+
 	if(node->fd >= 0) {
 		struct epoll_event ev;
 		ev.events = NI_IS_SOURCE(node->ni) ? EPOLLIN : 0;
@@ -345,7 +345,7 @@ void shutdown_node(chains_t *chains, node_t *node, int res) {
 
 	if(chains->debug)
 		printf("shutdown node %s (reason: %d) fd %d\n",node->name,res,fd);
-	
+
 	if(chains->shutdown_cb)
 		chains->shutdown_cb(chains, node, res);
 
@@ -353,10 +353,10 @@ void shutdown_node(chains_t *chains, node_t *node, int res) {
 	if(node->ni->reset)
 		node->ni->reset(node);
 	close(fd);
-	
+
 out:
 //	pthread_mutex_unlock(&node->mtx);
-	
+
 	/* might have taken a while -> last timestamp might be outdated */
 	stats_outdated(chains, node->thread_id);
 }
@@ -365,17 +365,17 @@ int run_chain(chains_t *chains, node_t *node, buf_t *obuf, int discard) {
 	int res=0;
 	node_t *last=NULL;
 	buf_t *last_discard = NULL;
-	
+
 	if(chains->debug)
 		printf("run_chain %s\n",node->name);
-	
+
 	for(;node && (!chains->quit);node=node->dst) {
 		const node_info_t *ni = node->ni;
 		const chain_t *chain = node->chain;
 		buf_t *tmp_obuf = NULL;
-		
+
 		pthread_mutex_lock(&node->mtx);
-		
+
 		/* abort if we stumble upon a sink or source w/o a valid fd */
 		if( (NI_IS_SINK(ni) || NI_IS_SOURCE(ni)) && NODE_FD_INVALID(node) &&
 			(ni != &queue_source) && (ni != &queue_sink) ) {
@@ -384,48 +384,48 @@ int run_chain(chains_t *chains, node_t *node, buf_t *obuf, int discard) {
 			pthread_mutex_unlock(&node->mtx);
 			break;
 		}
-		
+
 		/* set former output buffer as input buffer
 		 * also set input as default output buffer
 		 * in case the node doesn't set one */
 		node->inbuf = obuf;
 		node->outbuf = obuf;
-		
+
 		/* if node needs an output buffer get one
 		 * keep reference to this buffer and release if node didn't use it */
 		if(ni->flags & NI_OBUF)
 			tmp_obuf = node->outbuf = bufstore_getbuf(chain->bs, chain->bufsize, 0);
-		
+
 		last=node;
-		
+
 		res = ni->work(chains, node);
-		
+
 		stats_update(chains, node);
-				
+
 		if(chains->debug > 5)
 			printf("node %s: res %d ib %p ob %p\n",node->name,res,node->inbuf,node->outbuf);
 
 		/* keep output buffer for next node */
 		obuf = node->outbuf;
-		
+
 		/* discard temporary buffer if unused */
 		if(tmp_obuf && (obuf != tmp_obuf))
 			buf_discard(tmp_obuf,node->name);
-		
+
 		/* discard inbuf if node didn't forward the input buffer
 		 * (no longer needed) */
 		if((node->inbuf != node->outbuf) && (node->inbuf) && (discard) ) {
 			buf_discard(node->inbuf,node->name);
 			last_discard = node->inbuf;
 		}
-		
+
 		if (NI_IS_SINK(ni) && (ni->flags & NI_USE_POLLOUT))
 			node_update_pollout(chains, node);
-		
+
 		pthread_mutex_unlock(&node->mtx);
-		
+
 		last = node;
-		
+
 		/* abort if output void */
 		if((!res) || (!obuf))
 			break;
@@ -436,7 +436,7 @@ int run_chain(chains_t *chains, node_t *node, buf_t *obuf, int discard) {
 			break;
 		}
 	}
-	
+
 	/* usually we discard the last output buffer after processed by the sink (res==0)
 	 * a special case exists if sink is a queue - then we must not discard obuf
 	 * (queue sink returns res > 0) */
@@ -444,9 +444,9 @@ int run_chain(chains_t *chains, node_t *node, buf_t *obuf, int discard) {
 		assert(last_discard != obuf);
 		buf_discard(obuf,last->name);
 	}
-	
+
 	/* TODO: flow control update */
-	
+
 	return 0;
 }
 
@@ -470,10 +470,10 @@ static void *chains_thread(void *priv) {
 	struct epoll_event *ev, *events = NULL;
 	int res, n_events = 0;
 	int thread_id;
-	
+
 	pthread_mutex_lock(&chains->mtx);
 	/* get a unique thread id */
-	thread_id = chains->thread_idx++;	
+	thread_id = chains->thread_idx++;
 	pthread_mutex_unlock(&chains->mtx);
 
 	thread = chains->threads + thread_id;
@@ -490,17 +490,17 @@ static void *chains_thread(void *priv) {
 
 	/* TODO: mutex */
 	while(!chains->quit) {
-		
+
 		res = thread_poll(chains, events, n_events, thread_id);
 		assert(res>0);
 		stats_outdated(chains, thread_id);
 
 		if(chains->quit)
 			break;
-	
+
 		for(ev=events;res;res--,ev++) {
 			node_t *n = ev->data.ptr;
-			
+
 			if(!n) {
 				uint64_t v;
 				int res2 = read(thread->notify_fd, &v, sizeof(v));
@@ -508,21 +508,21 @@ static void *chains_thread(void *priv) {
 				puts("WAKEUP");
 				continue; /* wakeup */
 			}
-							
+
 			if(chains->debug > 5)
 				printf("(%d) node %s revents %x\n",thread_id, n->name,ev->events);
-			
+
 			/* TODO: verify shutdown <-> OOB shutdown */
 			if(ev->events & (EPOLLRDHUP|EPOLLERR|EPOLLHUP)) {
 				shutdown_node(chains, n, ev->events);
 			}
-			
+
 			else if(ev->events & EPOLLOUT) {
 				/* we only invoke the sink, but we use run_chain
 				 * b/c it does all the mutex stuff, etc. */
 				run_chain(chains, n, NULL, 1);
 			}
-			
+
 			else if(ev->events & EPOLLIN) {
 				do {
 					run_chain(chains, n, NULL, 1);
@@ -531,13 +531,13 @@ static void *chains_thread(void *priv) {
 			}
 		}
 	} // main loop
-	
+
 quit:
 	printf("thread %d quit\n",thread_id);
-	
+
 	if((!thread_id) && (chains->flags & CHAINS_STATS_EN))
 		chains_info(chains);
-	
+
 	return NULL;
 }
 
@@ -549,24 +549,24 @@ static int thread_setup(chains_t *chains, int thread_id) {
 	int pthread_queue = 1;
 	node_t *queue_src = NULL;
 	struct epoll_event ev;
-		
+
 	/* arrays used for poll() */
-	
+
 	thread->epoll_fd = epoll_create1(0);
 	assert(thread->epoll_fd >= 0);
-	
+
 	printf("thread %d fds:\n",thread_id);
 	list_for_each(pos, &chains->nodes) {
 		node_t *n= list_entry(pos, node_t, list);
 		const node_info_t *ni = n->ni;
-		
+
 		if(n->thread_id != thread_id)
 			continue;
-		
+
 		if(NI_IS_SINK(ni) || NI_IS_SOURCE(ni)) {
-			
+
 			printf("  %s: %d\n",n->name,n->fd);
-			
+
 			if(NODE_FD_VALID(n)) {
 				struct epoll_event ev;
 				ev.events = NI_IS_SOURCE(ni) ? EPOLLIN : 0;
@@ -574,7 +574,7 @@ static int thread_setup(chains_t *chains, int thread_id) {
 				res = epoll_ctl(thread->epoll_fd, EPOLL_CTL_ADD, n->fd, &ev);
 				assert(!res);
 			}
-			
+
 			/* determine if we can use pthread_cond instead of eventfd */
 			if(NI_IS_SOURCE(ni)) {
 				sources++;
@@ -587,27 +587,27 @@ static int thread_setup(chains_t *chains, int thread_id) {
 			 * use pthread_cond either */
 			else if(NI_IS_SINK(ni) && (ni->flags & NI_USE_POLLOUT))
 				pthread_queue = 0;
-			
+
 		}
 	}
-	
+
 	/* use pthread_cond for queue instead of eventfd? */
 	if((sources == 1) && pthread_queue && queue_src) {
 		node_t *sink = queue_src->ctx;
-		
+
 		puts("  using pthread_cond instead of eventfd");
-		
+
 		/* eventfd to the ground */
 		node_setfd(chains, sink, -1);
 		node_setfd(chains, queue_src, -1);
 		close(sink->fd);
-		
+
 		/* single source: queue */
 		thread->queue_src = queue_src;
-		
+
 		close(thread->epoll_fd);
 		thread->epoll_fd = -1;
-		
+
 		return 0;
 	}
 
@@ -621,34 +621,34 @@ static int thread_setup(chains_t *chains, int thread_id) {
 	ev.data.ptr = NULL;
 	res = epoll_ctl(thread->epoll_fd, EPOLL_CTL_ADD, thread->notify_fd, &ev);
 	assert(!res);
-	
+
 	return 0;
 }
 
 int chains_setup(chains_t *chains) {
 	int res, i;
 	struct list_head *pos;
-	
+
 	/* init all nodes */
 	list_for_each(pos, &chains->nodes) {
 		node_t *n= list_entry(pos, node_t, list);
 		const node_info_t *ni = n->ni;
-		
+
 		if(ni->init) {
 			printf("calling init for %s\n",n->name);
 			ni->init(chains,n);
 		}
-		
+
 		if(ni->reset)
-			ni->reset(n);		
+			ni->reset(n);
 	}
-	
+
 	/* setup threads */
 	for(i=0;i<chains->n_threads;i++) {
 		res = thread_setup(chains, i);
 		assert(!res);
 	}
-	
+
 	/* start threads */
 	for(i=0;i<chains->n_threads;i++) {
 		thread_t *thread = chains->threads+i;

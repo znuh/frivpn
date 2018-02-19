@@ -1,7 +1,7 @@
 /*
- * 
+ *
  * Copyright (C) 2017 Benedikt Heinz <Zn000h AT gmail.com>
- * 
+ *
  * This is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -26,12 +26,12 @@
 static int work(chains_t *chains, node_t *n) {
 	buf_t *ib = n->inbuf;
 	uint8_t ipv;
-	
+
 	/* sanity-check for IPv4/6 packets
 	 * drops OpenVPN PING packets */
 	if(ib->len < 20)
 		goto drop;
-	
+
 	ipv = *((const uint8_t *)ib->ptr)>>4;
 	//printf("IPv%d\n",ipv);
 	if((ipv == 4) || ((ipv == 6) && (ib->len >= 40)))

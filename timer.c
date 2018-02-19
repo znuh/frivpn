@@ -1,7 +1,7 @@
 /*
- * 
+ *
  * Copyright (C) 2017 Benedikt Heinz <Zn000h AT gmail.com>
- * 
+ *
  * This is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -65,16 +65,16 @@ void ctimer_stop(chains_t *chains, ctimer_t *ct) {
 	ct->flags &= ~CTIMER_ENABLED;
 }
 
-ctimer_t *ctimer_create(chains_t *chains, int thread_id, 
+ctimer_t *ctimer_create(chains_t *chains, int thread_id,
 	int (*work) (chains_t *chains, ctimer_t *ct, void *priv), void *priv, time64_t interval) {
 	ctimer_t *ct = calloc(1,sizeof(ctimer_t));
-	
+
 	ct->thread_id = thread_id;
-	
+
 	// register node with chains
 	list_add_tail(&ct->list, &chains->timers);
 	chains->n_timers++;
-	
+
 	ct->work = work;
 	ct->priv = priv;
 	//ctimer_adjust(chains, ct, interval);
@@ -89,17 +89,17 @@ int process_timers(chains_t *chains, int thread_id) {
 	time64_t now = chains_gettime(chains, 1); /* get latest time */
 	uint64_t naptime=0;
 	uint64_t tmp;
-	
+
 	/* walk through active timers until tval > current time */
 	list_for_each(pos, &chains->timers) {
 		ctimer_t *ct= list_entry(pos, ctimer_t, list);
-		
+
 		if(ct->thread_id != thread_id)
 			continue;
-		
+
 		if(!(ct->flags & CTIMER_ENABLED))
 			continue;
-		
+
 		if(now >= ct->timeout) {
 			int res = ct->work(chains, ct, ct->priv);
 			ct->flags = res;
@@ -107,15 +107,15 @@ int process_timers(chains_t *chains, int thread_id) {
 				continue;
 			ct->timeout = now + ct->interval;
 		}
-		
+
 		tmp = ct->timeout - now;
 		if((!naptime) || (tmp < naptime))
 			naptime = tmp;
 	}
 	naptime /= 1000000; /* nsec -> msec */
-	
+
 	if(chains->debug > 1)
 		printf("naptime: %"PRIu64"\n",naptime);
-	
+
 	return naptime ? naptime : -1;
 }

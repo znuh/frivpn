@@ -1,7 +1,7 @@
 /*
- * 
+ *
  * Copyright (C) 2017 Benedikt Heinz <Zn000h AT gmail.com>
- * 
+ *
  * This is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -40,7 +40,7 @@ struct iov_s {
 /* needed for reconnect */
 static void reset_iovec(node_t *n) {
 	struct iov_s *iov = n->priv;
-	
+
 	/* discard all queued buffers */
 	for(;iov->full_bufs;iov->full_bufs--) {
 		buf_t *buf = iov->bufs[iov->get_idx];
@@ -54,13 +54,13 @@ static void reset_iovec(node_t *n) {
 static int init_iovec(chains_t *chains, node_t *n) {
 	struct iov_s *iov = calloc(1,sizeof(struct iov_s));
 	n->priv = iov;
-	
+
 	iov->n_bufs = N_BUFS;
 	assert(is_power_of_two(iov->n_bufs));
-	
+
 	iov->bufs = malloc(iov->n_bufs * sizeof(buf_t *));
 	iov->iovs = malloc(iov->n_bufs * sizeof(struct iovec));
-	
+
 	return 0;
 }
 
@@ -70,18 +70,18 @@ static int write_vectors(int fd, struct iov_s *iov, const char *nname) {
 	int iocnt = MIN(max_vectors, iov->full_bufs);
 	size_t remaining, res = writev(fd, iovec, iocnt);
 	//printf("sz %zd\n",res);
-	
+
 	/* process completely written iovecs */
-	for(remaining=res; iov->full_bufs && (remaining>=iovec->iov_len); 
+	for(remaining=res; iov->full_bufs && (remaining>=iovec->iov_len);
 			iovec++, iov->get_idx++, iov->full_bufs--) {
 		buf_t *buf = iov->bufs[iov->get_idx];
 		//printf("write_iovec discard %d %d\n",iov->get_idx,iovec->iov_len);
 		buf_discard(buf, nname);
 		remaining -= iovec->iov_len;
 	}
-	
+
 	iov->get_idx &= (iov->n_bufs-1);
-	
+
 	/* last iovec incomplete */
 	if(remaining > 0) {
 		/* update iovec for next writev */
@@ -95,32 +95,32 @@ static int write_vectors(int fd, struct iov_s *iov, const char *nname) {
 		if(res2 > 0)
 			res += res2;
 	}
-	
+
 	return res;
 }
 
 static int work_iovec(chains_t *chains, node_t *n) {
 	buf_t *b = n->inbuf;
 	struct iov_s *iov = n->priv;
-	
+
 	if(b) {
 		struct iovec *iovec = iov->iovs + iov->put_idx;
-		
+
 		assert(iov->full_bufs < iov->n_bufs);
-		
+
 		iovec->iov_base = b->ptr;
 		iovec->iov_len = b->len;
-		
+
 		//printf("write_iovec enqueue %d\n",iov->put_idx);
-		
+
 		iov->bufs[iov->put_idx++] = b;
 		iov->put_idx &= (iov->n_bufs-1);
 		iov->full_bufs++;
-		
+
 		if(!iov->opportunistic_write)
 			goto out;
 	}
-	
+
 	write_vectors(n->fd, iov, n->name);
 
 out:
@@ -136,10 +136,10 @@ static int work_poll(chains_t *chains, node_t *n) {
 	while(remain) {
 		struct pollfd pfd = {.fd=n->fd, .events=POLLOUT};
 		poll(&pfd, 1, -1);
-		
+
 		if(pfd.revents != POLLOUT)
 			return -1;
-			
+
 		//assert(pfd.revents == POLLOUT);
 		res = write(n->fd, p, remain);
 		if(res <= 0)

@@ -39,21 +39,21 @@ struct ctimer_s {
 struct buf_s {
 	uint8_t *d;
 	size_t bufsize;
-	
+
 	uint8_t *ptr;
 	size_t ofs;
 	size_t len;
 	size_t maxlen;	/* remaining length from ptr to end of buf */
-	
+
 	const char *last_node;
-		
+
 	/* bufstore stuff */
 	bufstore_t *owner;
 	union {
 		struct list_head list;
 		struct bufinfo_stream_s {
 			buf_t *free_start;	/* block of unused buffers start */
-			buf_t *free_end;	/* block of unused buffers end */	
+			buf_t *free_end;	/* block of unused buffers end */
 		} si;
 	} bi;
 	uint32_t flags;
@@ -70,13 +70,13 @@ typedef struct bufqueue_s {
 	uint32_t full_bufs;
 	uint32_t put_idx;
 	uint32_t get_idx;
-		
+
 	pthread_mutex_t mutex;
 	pthread_cond_t put_unblock;
 	pthread_cond_t get_unblock;
 	int put_blocked;
 	int get_blocked;
-	
+
 	int quit;
 } bufqueue_t;
 
@@ -90,17 +90,17 @@ typedef struct bufmgmt_stream_s {
 	size_t fill; /* num of bytes */
 	uint8_t *put;	/* get + fill */
 	size_t free;
-	
+
 	uint8_t *rbuf;
 	size_t bufsz;
-	
+
 	buf_t *bufs;
 	uint32_t n_bufs;
-	uint32_t get_idx;	
+	uint32_t get_idx;
 } bufmgmt_stream_t;
 
 typedef struct bufmgmt_simple_s {
- 	uint8_t *bufs;
+	uint8_t *bufs;
 	buf_t **stack;
 	uint32_t idx;
 } bufmgmt_simple_t;
@@ -108,14 +108,14 @@ typedef struct bufmgmt_simple_s {
 typedef enum { BS_SIMPLE, BS_STREAM} bs_type_t;
 
 struct bufstore_s {
-	
+
 	pthread_mutex_t mtx;
 	pthread_cond_t cond;
 	int blocked;
 
 	uint32_t *debug;
 
-	bs_type_t type;	
+	bs_type_t type;
 	union {
 		bufmgmt_simple_t simple;
 		bufmgmt_stream_t stream;
@@ -196,19 +196,19 @@ struct node_s {
 
 struct thread_s {
 	pthread_t thread;
-/*	
+/*
 	pthread_mutex_t poll_mtx;
 	struct pollfd *pollfds[2];
 	int pfd_idx;
 	node_t **io_nodes;
 */
 	uint32_t n_ionodes;
-	
+
 	int notify_fd;
 
 	int epoll_fd;
 	node_t *queue_src;	/* used if we have a single source which is a queue */
-	
+
 	//int poll_active;
 
 	time64_t last_stats;
@@ -216,35 +216,35 @@ struct thread_s {
 };
 
 struct chains_s {
-	
+
 	pthread_mutex_t mtx;
-	
+
 	int quit;
 	uint32_t debug;
-	
+
 	void (*shutdown_cb) (chains_t *chains, node_t *node, int res);
 	void *priv;
-	
+
 	uint32_t n_nodes;
 	struct list_head nodes;
-	
+
 	int thread_idx;
 	thread_t *threads;
 	uint32_t n_threads;
-	
+
 	/***************************/
-	
+
 	/* all timers are handled in thread 0 */
 	uint32_t n_timers;
 	struct list_head timers;
-	
+
 	/* we build a proxy around the syscall so we can reuse the most recent
 	 * timestamp for use-cases with lower precision requirements.
-	 * we do this because clock_gettime/gettimeofday is a regular syscall 
+	 * we do this because clock_gettime/gettimeofday is a regular syscall
 	 * on some platforms (see vdso(7) for more details) */
 	time64_t recently; /* timestamp */
 	pthread_mutex_t recently_mtx;
-	
+
 	uint32_t flags; /* stats en-/disable per thread? */
 };
 

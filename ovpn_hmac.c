@@ -1,7 +1,7 @@
 /*
- * 
+ *
  * Copyright (C) 2017 Benedikt Heinz <Zn000h AT gmail.com>
- * 
+ *
  * This is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -38,18 +38,18 @@ static int work_hash(chains_t *chains, node_t *n) {
 	const uint8_t *src = ib->ptr+1;
 	int res, src_len = ib->len-1;
 	struct key_s *key = request_key(crypto, key_id);
-	
+
 	if(!key) {
 		printf("TX key %d invalid - dropping packet\n",key_id);
 		ib->len = 0;
 		goto done;
 	}
-	
+
 	buf_prepend(ib, 20);
 	res = hmac(key->hmac_tx, src, src_len, ib->ptr+1);
-	
+
 	pthread_rwlock_unlock(&key->lock);
-	
+
 	assert(res == 1);
 	ib->ptr[0] = key_id | (DATA<<3); /* DATA_V1 */
 done:
@@ -63,25 +63,25 @@ static int work_verify(chains_t *chains, node_t *n) {
 	int res, key_id = ib->ptr[0]&7;
 	struct key_s *key;
 	const uint8_t *rcvd_hash = ib->ptr+1;
-	
+
 	if(ib->len < 20)
 		goto drop;
-	
+
 	buf_consume(ib, 20);
 
 	if(crypto->flags & OVPN_IGNORE_HMAC)
 		goto done;
-	
+
 	key = request_key(crypto, key_id);
 	if(!key) {
 		printf("RX key %d invalid - dropping packet\n",key_id);
 		goto drop;
 	}
-	
+
 	res = hmac(key->hmac_rx, ib->ptr+1, ib->len-1, hmac_buf);
-	
+
 	pthread_rwlock_unlock(&key->lock);
-	
+
 	assert(res == 1);
 	res = compare_hmac(rcvd_hash,hmac_buf,20);
 	if(res) {
@@ -89,7 +89,7 @@ static int work_verify(chains_t *chains, node_t *n) {
 		goto drop;
 	}
 
-done:	
+done:
 	ib->ptr[0] = key_id;
 	return ib->len;
 drop:

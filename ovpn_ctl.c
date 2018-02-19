@@ -1,7 +1,7 @@
 /*
- * 
+ *
  * Copyright (C) 2017 Benedikt Heinz <Zn000h AT gmail.com>
- * 
+ *
  * This is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -27,7 +27,7 @@
 #include "chains.h"
 #include <assert.h>
 
-/* use key_id = -1 for txkey 
+/* use key_id = -1 for txkey
  * checks if key is valid and locks key for reading
  * caller must unlock rwlock after crypto */
 struct key_s *request_key(struct crypto_s *crypto, int key_id) {
@@ -39,7 +39,7 @@ struct key_s *request_key(struct crypto_s *crypto, int key_id) {
 		pthread_rwlock_rdlock(&key->lock);
 	}
 	pthread_rwlock_unlock(&crypto->lock);
-	return key;	
+	return key;
 }
 
 int ovpn_ctl_getsock(ovpn_t *ovpn) {
@@ -101,13 +101,13 @@ struct ovpn_hdr_s {
 	uint32_t packet_id;
 	uint32_t timestamp;
 	uint8_t ack_len;
-	
+
 	/* followed by:
-	 * 
+	 *
 	 * if ack_len > 0:
 	 * 	ack_len * uint32_t msg_pkt_ids
 	 *  remote session id
-	 * 
+	 *
 	 * if op != ACK:
 	 *  uint32_t packet_id
 	 *  data payload
@@ -141,49 +141,49 @@ static int ctl_putheader(struct ctl_s *ctl, buf_t *ob, uint8_t op) {
 	struct ovpn_hdr_s *hdr;
 	int n_acks;
 	int res=0;
-	
+
 	pthread_mutex_lock(&ctl->state_mtx);
-	
+
 	n_acks = rxc->n_acks;
-	
+
 	if(op != ACK) {
 		uint32_t *msgid = buf_prepend(ob, 4);
 		*msgid = htonl(txc->msg_pkt_id++);
 	}
 	else if(!n_acks)
 		goto done;
-	
+
 	if(n_acks) {
 		/* put remote session ID */
 		uint64_t *remote_sid = buf_prepend(ob, 8);
 		*remote_sid = rxc->session_id;
-		
+
 		/* put ACK-ids */
 		memcpy(buf_prepend(ob, 4*n_acks), rxc->ack_ids, n_acks*4);
-		
+
 		rxc->n_acks = 0;
 		if(ctl->debug > 5)
 			printf("send %d ACKs %"PRIu32"\n",n_acks,ntohl(rxc->ack_ids[0]));
 	}
-	
-	hdr = buf_prepend(ob, sizeof(struct ovpn_hdr_s));	
+
+	hdr = buf_prepend(ob, sizeof(struct ovpn_hdr_s));
 	hdr->opcode 	= (op<<3) | ctl->key_id;
 	hdr->session_id = txc->session_id;
 	hdr->timestamp 	= htonl(time(NULL));
-	
+
 	if(hdr->timestamp != txc->last_time)
 		txc->packet_id = 0;
-	
+
 	txc->last_time = hdr->timestamp;
-	
+
 	hdr->packet_id 	= htonl(++txc->packet_id);
-	
+
 	hdr->ack_len 	= n_acks;
-	
+
 	ctl_hmac(ctl->hmac_tx, hdr, ob->len, 0);
-	
+
 	res = ob->len;
-	
+
 done:
 	pthread_mutex_unlock(&ctl->state_mtx);
 	return res;
@@ -211,8 +211,8 @@ int ovpn_ctl_start(chains_t *chains, struct ctl_s *ctl) {
 }
 
 /* invoked from ovpn_decap via ovpn_process_ctl
- * write packet to non-default destination ovpn_encap 
- * 
+ * write packet to non-default destination ovpn_encap
+ *
  * ctl_send for writing to ovpn_encap
  * w/o using normal output buffer
  * needed for connection start and for sending
@@ -235,9 +235,9 @@ static void ctl_reset(chains_t *chains, struct ctl_s *ctl, int opcode, int key_i
 	struct crypto_s *crypto = &ctl->crypto;
 	struct key_s *key = NULL;
 	int last_key, reply;
-	
+
 	//puts("RESET");
-	
+
 	/* reset ctl ctx for new key */
 	pthread_mutex_lock(&ctl->state_mtx);
 	last_key = ctl->key_id;
@@ -281,53 +281,53 @@ int ovpn_process_ctl(chains_t *chains, struct ctl_s *ctl, buf_t *ib) {
 	uint64_t *our_sid=NULL;
 	uint32_t *msg_pkt_id_p=NULL, msg_pkt_id=0;
 	int res, opcode, key_id;
-	
+
 	assert(ib->len >= sizeof(struct ovpn_hdr_s));
 	opcode = hdr->opcode>>3;
 	key_id = hdr->opcode&7;
-		
+
 	buf_consume(ib, sizeof(struct ovpn_hdr_s));
-	
+
 	/* check HMAC */
 	res = ctl_hmac(ctl->hmac_rx, hdr, orig_len, 1);
 	if(res)
 		goto drop;
-	
+
 	pthread_mutex_lock(&ctl->state_mtx);
-	
+
 	/* keep remote session ID if not yet stored */
 	if(!rxc->session_id)
 		rxc->session_id = hdr->session_id;
-	
+
 	pthread_mutex_unlock(&ctl->state_mtx);
-	
+
 	// TODO: handle ACK-list
 	buf_consume(ib, hdr->ack_len*4);
-	
+
 	if(hdr->ack_len) {
 		/* find our own session-id at end of ACK-list */
 		our_sid = (uint64_t*)ib->ptr;
 		(void)our_sid; // suppress not-used warning
 		buf_consume(ib, 8);
 	}
-	
+
 	if(opcode == ACK) {
 		goto drop; // nothing to do
 	}
-	
+
 	/* non-ACK packets have a message-ID */
 	msg_pkt_id_p = (uint32_t*)ib->ptr;
 	msg_pkt_id = ntohl(*msg_pkt_id_p);
 	buf_consume(ib, 4);
-	
+
 	/* this needs NETWORK ORDER msg_pkt_ids */
 	enqueue_ack(ctl, *msg_pkt_id_p);
-	
+
 	/* remaining buffer content is data payload */
-	
+
 	if(ctl->debug > 1)
 		printf("ctl %d %d payload len %zu msg_id %"PRIu32"\n",opcode,key_id,ib->len,msg_pkt_id);
-	
+
 	/* TODO: verify locking */
 	switch(opcode) {
 		case SERVER_RESET_V2:
@@ -335,41 +335,41 @@ int ovpn_process_ctl(chains_t *chains, struct ctl_s *ctl, buf_t *ib) {
 			assert(!msg_pkt_id);
 			ctl_reset(chains, ctl, opcode, key_id);
 			break;
-			
+
 		case CONTROL:
 			send_acks(chains, ctl);
-			
+
 			/* preliminary sanity check for duplicate messages */
 			if(msg_pkt_id != rxc->msg_pkt_id) {
 				fprintf(stderr,"msg_pkt_id != rxc->msg_pkt_id: %d != %d\n",msg_pkt_id,rxc->msg_pkt_id);
 			}
-			
+
 			/* our ACK might have arrived too late
-			 * so we simply drop duplicate message IDs 
+			 * so we simply drop duplicate message IDs
 			 * this works for TCP only */
 			if(msg_pkt_id < rxc->msg_pkt_id)
 				goto drop;
-			
+
 			//assert(msg_pkt_id == rxc->msg_pkt_id);
-			
+
 			if(key_id != ctl->key_id) {
 				fprintf(stderr,"key_id != ctl->key_id: %d != %d\n",key_id, ctl->key_id);
 			}
 			assert(key_id == ctl->key_id);
-			
+
 			pthread_mutex_lock(&ctl->state_mtx);
 			rxc->msg_pkt_id++;
 			pthread_mutex_unlock(&ctl->state_mtx);
 			/* send buf to TLS sock, drop buf afterwards */
 			run_chain(chains, ctl->tls_write, ib, 0);
 			break;
-			
+
 		default:
 			fprintf(stderr,"unknown opcode: %d\n",opcode);
 			assert(0);
 	}
 
-drop:	
+drop:
 	ib->len=0;
 	return 0;
 }
@@ -378,7 +378,7 @@ drop:
  * - invalid keys must not be used
  * - keys must not be invalidated while in use
  * 	-> invalidation only if key not in use
- * 
+ *
  * crypto/hmac:
  * - lock general crypto
  * - find key
@@ -392,40 +392,40 @@ void ovpn_ctl_setkeys(ovpn_t *ovpn, const uint8_t *keys) {
 	struct crypto_s *crypto = &ctl->crypto;
 	struct key_s *key;
 	int res, key_id;
-	
+
 	pthread_mutex_lock(&ctl->state_mtx);
 	key_id = ctl->key_id;
 	pthread_mutex_unlock(&ctl->state_mtx);
 	key = crypto->key + key_id;
-	
+
 	/* invalidate key if not yet done */
 	pthread_rwlock_wrlock(&crypto->lock);
 	crypto->valid_keys &= ~(1<<key_id);
 	pthread_rwlock_unlock(&crypto->lock);
-	
+
 	/* update key */
 	pthread_rwlock_wrlock(&key->lock);
-	
+
 	res = EVP_EncryptInit_ex(key->evp_enc, EVP_aes_256_cbc(), NULL, keys, NULL);
 	assert(res == 1);
 	res = HMAC_Init_ex(key->hmac_tx, keys+64, 20, EVP_sha1(), NULL);
 	assert(res == 1);
-	
+
 	res = EVP_DecryptInit_ex(key->evp_dec, EVP_aes_256_cbc(), NULL, keys+128, NULL);
 	assert(res == 1);
 	res = HMAC_Init_ex(key->hmac_rx, keys+192, 20, EVP_sha1(), NULL);
 	assert(res == 1);
-	
+
 	pthread_rwlock_unlock(&key->lock);
-	
+
 	/* mark key as valid now, set new key as txkey */
 	pthread_rwlock_wrlock(&crypto->lock);
 	crypto->valid_keys |= (1<<key_id);
 	crypto->tx_key = key_id;
 	pthread_rwlock_unlock(&crypto->lock);
-	
+
 	//fprintf(stderr,"setkey %d\n",key_id);
-	
+
 	if(!key_id)
 		ctimer_start(ovpn->chains, ovpn->ctl.ping_timer);
 }

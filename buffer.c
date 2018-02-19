@@ -1,7 +1,7 @@
 /*
- * 
+ *
  * Copyright (C) 2017 Benedikt Heinz <Zn000h AT gmail.com>
- * 
+ *
  * This is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
@@ -64,12 +64,12 @@ bufstore_t *bufstore_create(size_t bufsize, uint32_t n_bufs) {
 
 	bs->type = BS_SIMPLE;
 	bs->bm.simple.bufs = p;
-	
+
 	pthread_mutex_init(&bs->mtx, NULL);
 	pthread_cond_init(&bs->cond, NULL);
 
 	bm->stack = malloc(n_bufs * sizeof(buf_t*));
-	
+
 	for(i=0;i<n_bufs;i++, p+=sizeof(buf_t)+bufsize) {
 		buf_t *buf = (buf_t *) p;
 		memset(buf, 0, sizeof(buf_t));
@@ -78,7 +78,7 @@ bufstore_t *bufstore_create(size_t bufsize, uint32_t n_bufs) {
 		buf->owner = bs;
 		bm->stack[bm->idx++] = buf;
 	}
-	
+
 	return bs;
 }
 
@@ -96,28 +96,28 @@ int bufstore_exhausted(bufstore_t *bs) {
 buf_t *bufstore_getbuf(bufstore_t *bs, size_t len, int nonblock) {
 	bufmgmt_simple_t *bm = &bs->bm.simple;
 	buf_t *buf = NULL;
-	
+
 	pthread_mutex_lock(&bs->mtx);
-	
+
 	if((!bm->idx) && nonblock) {
 		pthread_mutex_unlock(&bs->mtx);
 		return NULL;
 	}
-	
+
 	bs->blocked++;
 	while(!bm->idx)
 		pthread_cond_wait(&bs->cond, &bs->mtx);
 	bs->blocked--;
-	
+
 	buf = bm->stack[--bm->idx];
 	buf->flags = BUF_INUSE;
-	
+
 	pthread_mutex_unlock(&bs->mtx);
-	
+
 	buf->last_node = NULL;
 	buf_reset(buf, 0);
 	buf_assertspace(buf, len);
-	
+
 	return buf;
 }
 
@@ -149,27 +149,27 @@ bufstore_t *streamstore_create(size_t bufsize, uint32_t n_bufs) {
 	bufmgmt_stream_t *stream = &(bs->bm.stream);
 	buf_t *buf;
 	int i;
-	
+
 	assert(is_power_of_two(bufsize));
 	assert(is_power_of_two(n_bufs));
-	
+
 	bs->type = BS_STREAM;
-	
+
 	pthread_mutex_init(&bs->mtx, NULL);
 	pthread_cond_init(&bs->cond, NULL);
-	
+
 	stream->bufsz = bufsize;
 	stream->rbuf = malloc(stream->bufsz);
-	
+
 	stream->n_bufs = n_bufs;
 	stream->bufs = calloc(stream->n_bufs+2, sizeof(buf_t));
-	
-	/* init first buffer 
+
+	/* init first buffer
 	 * first buf always points to start of rbuf */
 	stream->bufs->flags = BUF_SETUP;
 	stream->bufs->d = stream->rbuf;
 	stream->bufs->bufsize = stream->bufsz;
-	
+
 	for(i=0;i<stream->n_bufs+2;i++) {
 		buf = stream->bufs + i;
 		buf->bi.si.free_start = buf->bi.si.free_end = buf;
@@ -180,29 +180,29 @@ bufstore_t *streamstore_create(size_t bufsize, uint32_t n_bufs) {
 	buf->flags = BUF_INUSE; /* guard buffer */
 
 	stream->put = stream->get = stream->bufs->d;
-	
+
 	return bs;
 }
 
 #define buf_idle(buf) (!((buf)->flags))
 #define buf_inuse(buf) ((buf)->flags & BUF_INUSE)
 
-/* streamstore discard 
- * 
+/* streamstore discard
+ *
  * this can be invoked by any thread
- * therefore we need a mutex for everything we read/write here 
- * 
+ * therefore we need a mutex for everything we read/write here
+ *
  * mutex MUST BE HELD */
 void streamstore_discard(bufmgmt_stream_t *stream, buf_t *buf) {
 	buf_t *free_start=buf, *free_end=buf;
 	int buf_id = buf - stream->bufs;
 
 	assert(buf_id <= stream->n_bufs);
-	
-	/* merge right block to this buf if possible 
-	 * don't do this if right block is in use or being setup 
-	 * 
-	 * note: there's one extra buf (n_bufs+1) for keeping unused space 
+
+	/* merge right block to this buf if possible
+	 * don't do this if right block is in use or being setup
+	 *
+	 * note: there's one extra buf (n_bufs+1) for keeping unused space
 	 * therefore no buf_id-checking here (assert is done above) */
 	if(buf_idle(buf+1)) {
 		buf_t *right = buf+1;
@@ -211,11 +211,11 @@ void streamstore_discard(bufmgmt_stream_t *stream, buf_t *buf) {
 		right->bufsize = 0;
 	}
 	assert(free_end);
-	
-	/* merge this block left if possible 
-	 * 
+
+	/* merge this block left if possible
+	 *
 	 * merging current buf to left block while left
-	 * block ist being setup does no harm 
+	 * block ist being setup does no harm
 	 * b/c we simply enlarge the buffer being setup
 	 */
 	if((buf_id) && (!buf_inuse(buf-1))) {
@@ -225,11 +225,11 @@ void streamstore_discard(bufmgmt_stream_t *stream, buf_t *buf) {
 		buf->bufsize = 0;
 	}
 	assert(free_start);
-	
+
 	/* update limits of block */
 	free_start->bi.si.free_end = free_end;
 	free_end->bi.si.free_start = free_start;
-	
+
 	buf->flags = 0;
 }
 
@@ -251,44 +251,44 @@ static buf_t *rollover(bufmgmt_stream_t *stream, buf_t *buf) {
 	return stream->bufs;
 }
 
-/* streamstore request 
- * 
+/* streamstore request
+ *
  * buffer has already been reserved in getspace
  * data pointer has been set
  * we now just have to set the buffer length
- * 
+ *
  * TODO: best rollover strategy?
  * */
 buf_t *streamstore_getbuf(bufstore_t *bs, size_t len) {
 	bufmgmt_stream_t *stream = &(bs->bm.stream);
 	buf_t *buf = stream->bufs + stream->get_idx;
 	buf_t *next_buf = buf+1;
-	
+
 	if(!len)
 		return NULL;
-	
+
 	if(*bs->debug > 5)
 		printf("buf %p (%d) (stream) get / sz %zd\n",buf,stream->get_idx, len);
-	
+
 	assert(len <= stream->fill);
-	
+
 	assert(buf->flags == BUF_SETUP);
-	
+
 	/* we set the bufsize to the actual needed length
 	 * and move the leftover space to the next buf
-	 * 
+	 *
 	 * there is one extra buf (n_bufs+1) which will
 	 * never be assigned just to hold unused memory
 	 * from the last 'normal' buf.
 	 * otherwise we would lose leftover memory of the
 	 * last 'normal' buf
-	 * 
+	 *
 	 * if next buf is a 'normal' buf it might be in use
 	 * in this case we need to wait
 	 * */
-	
+
 	pthread_mutex_lock(&bs->mtx);
-	
+
 	/* update get ptr & fill info for stream */
 	stream->get += len;
 	stream->fill -= len;
@@ -298,17 +298,17 @@ buf_t *streamstore_getbuf(bufstore_t *bs, size_t len) {
 	while(next_buf->flags)
 		pthread_cond_wait(&bs->cond, &bs->mtx);
 	bs->blocked = 0;
-	
+
 	stream->get_idx++; /* next buffer */
 	stream->get_idx &= (stream->n_bufs-1);
 
-	/* move unused space to next buf 
-	 * 
+	/* move unused space to next buf
+	 *
 	 * this might be the 'special' n_bufs+1 spare buffer
 	 * if we hit the spare buffer, we'll fix this with rollover() */
 	next_buf->d = stream->get;
 	next_buf->bufsize += buf->bufsize - len;
-	
+
 	if(!stream->get_idx) {	/* get_idx did a rollover -> fix things */
 		struct timespec ts;
 		clock_gettime(CLOCK_REALTIME, &ts);
@@ -322,17 +322,17 @@ buf_t *streamstore_getbuf(bufstore_t *bs, size_t len) {
 		bs->blocked = 0;
 		next_buf = rollover(stream, next_buf);
 	}
-	
+
 	next_buf->flags = BUF_SETUP;
-	
+
 	buf->flags = BUF_INUSE;
 	buf->bufsize = len;
-	
-	pthread_mutex_unlock(&bs->mtx);	
-	
+
+	pthread_mutex_unlock(&bs->mtx);
+
 	buf_reset(buf, 0);	/* will update maxlen as well */
 	buf->len = len;
-		
+
 	return buf;
 }
 
@@ -342,7 +342,7 @@ static buf_t *consider_rollover(bufmgmt_stream_t *stream) {
 	buf_t *buf1 = stream->bufs;
 	size_t put_pos = stream->put - stream->rbuf;
 	size_t remaining = buf->bufsize - stream->fill;
-		
+
 	/* we cannot rollover if 1st buf in use or not sufficient free space */
 	if(!buf_idle(buf1)) {
 		//puts("n_rollover: !idle(0)");
@@ -352,12 +352,12 @@ static buf_t *consider_rollover(bufmgmt_stream_t *stream) {
 		//puts("n_rollover: fill>size");
 		return buf;
 	}
-	
+
 	if((remaining < 2048) && (buf1->bufsize > remaining))
 		goto rollover;
 	else
 		return buf;
-	
+
 #if 0
 	/* never do a rollover if <= 1/2 of rbuf used */
 	if((remaining >= 128) && (put_pos <= (stream->bufsz/2))) {
@@ -365,18 +365,18 @@ static buf_t *consider_rollover(bufmgmt_stream_t *stream) {
 		return buf;
 	}
 #endif
-	/* 
+	/*
 	 * relevant factors for rollover decision:
 	 * - free space as start
 	 * - free space at current get
 	 * - fill == 0 ?
-	 * 
+	 *
 	 * if there's no free buffer left we would have to enforce
 	 * the rollover as well
 	 * BUT: acquiring buffers is done with getbuf()
 	 * we handle this rollover case there
 	 */
-		
+
 	/* we try to avoid rollovers while there's still
 	 * data stored in the rbuf because we need to memmove
 	 * this data on a rollover
@@ -391,6 +391,7 @@ rollover:
 	buf1->flags = BUF_SETUP;
 	return buf1;
 }
+
 /*
 void dump_bufs(bufmgmt_stream_t *stream) {
 	int i=0,n=stream->n_bufs+1;
@@ -403,46 +404,47 @@ void dump_bufs(bufmgmt_stream_t *stream) {
 	fflush(stdout);
 }
 */
+
 void *streamstore_getspace(bufstore_t *bs, size_t *sz) {
 	bufmgmt_stream_t *stream = &(bs->bm.stream);
 	buf_t *buf;
-	
+
 	assert(sz);
 
 	pthread_mutex_lock(&bs->mtx);
-	
-	/* gather free space from current block */	
+
+	/* gather free space from current block */
 
 	bs->blocked = 1;
-	
+
 	do {
-		
-		buf = consider_rollover(stream);	
-	
+
+		buf = consider_rollover(stream);
+
 		stream->free = buf->bufsize - stream->fill;
-		
+
 		if(!stream->free) {
 			//puts("blocked");
 			//dump_bufs(stream);
 			pthread_cond_wait(&bs->cond, &bs->mtx);
 			//puts("unblocked");
 		}
-	
+
 	} while(!stream->free);
-	
+
 	bs->blocked = 0;
 
 	pthread_mutex_unlock(&bs->mtx);
-	
+
 //	printf("bufsize %d fill %d\n",buf->bufsize, stream->fill);
-		
+
 	if(*bs->debug > 5) {
 		uint32_t buf_id = buf - stream->bufs;
 		printf("buf %p (%"PRIu32") getspace free %zd\n",buf,buf_id, stream->free);
 	}
-	
+
 	*sz = stream->free;
-	
+
 	return stream->put;
 }
 
@@ -459,7 +461,7 @@ inline int streamstore_put(bufstore_t *bs, size_t len) {
 
 void buf_discard(buf_t *buf, const char *last_node) {
 	bufstore_t *bs;
-	
+
 	assert(buf);
 	bs = buf->owner;
 	assert(bs);
@@ -468,7 +470,7 @@ void buf_discard(buf_t *buf, const char *last_node) {
 		printf("buf %p (type %d) discard after %s owner %p\n", buf, bs->type, last_node, bs);
 
 	pthread_mutex_lock(&bs->mtx);
-	
+
 	if(buf->flags != BUF_INUSE) {
 		const char *n1 = buf->last_node ? buf->last_node : "???";
 		const char *n2 = last_node ? last_node : "???";
@@ -477,7 +479,7 @@ void buf_discard(buf_t *buf, const char *last_node) {
 		assert(buf->flags == BUF_INUSE);
 	}
 	buf->last_node = last_node;
-	
+
 	if(bs->type == BS_STREAM)
 		streamstore_discard(&(bs->bm.stream), buf);
 	else {
@@ -490,5 +492,4 @@ void buf_discard(buf_t *buf, const char *last_node) {
 		pthread_cond_signal(&bs->cond);
 
 	pthread_mutex_unlock(&bs->mtx);
-
 }
