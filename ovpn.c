@@ -115,7 +115,9 @@ static void ctl_init(ovpn_t *ovpn) {
 		
 		key->hmac_rx = HMAC_CTX_new();
 		key->hmac_tx = HMAC_CTX_new();
-	
+		key->evp_dec = EVP_CIPHER_CTX_new();
+		key->evp_enc = EVP_CIPHER_CTX_new();
+
 		EVP_CIPHER_CTX_init(key->evp_dec);
 		EVP_CIPHER_CTX_init(key->evp_enc);
 	}
