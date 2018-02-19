@@ -1,6 +1,6 @@
 
 CC = gcc
-CFLAGS = -Wall -g -fPIE -D_FORTIFY_SOURCE=2 -fstack-protector-strong -fwrapv --param ssp-buffer-size=4
+CFLAGS = -Wall -g -fPIE -O2 -D_FORTIFY_SOURCE=2 -fstack-protector-strong -fwrapv --param ssp-buffer-size=4
 
 SOURCES = chains.c ovpn.c ovpn_crypto.c ovpn_tcp_src.c ovpn_filter.c \
 	ovpn_lzo.c write_sink.c read_src.c ovpn_hmac.c mt_write_sink.c \
