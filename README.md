@@ -1,5 +1,20 @@
 # frivpn
-A multithreaded openvpn client (WIP)
+A multi-threaded openvpn client (WIP)
+
+With Raspberry Pis, ODROIDs and APUs becoming ubiquitous and cheap devices,
+they are often used and configured as VPN gateways to the Internet. openvpn
+can't use those devices to their full capacity, since it runs single-threaded
+and quickly maxes out one CPU core due to the lack of hardware-accelerated
+AES cryptography.
+
+frivpn is multi-threaded and runs on multiple (all) CPU cores, which results
+in the best possible VPN bandwidth and throughput.
+
+| Device          | openvpn    | frivpn     |
+| --------------- | :--------: | :--------: |
+| APU.1D          | ~30 Mbit/s | ~60 Mbit/s |
+| ODROID XU4      | ~?? Mbit/s | ~80 Mbit/s |
+| Raspberry Pi 3  | ~?? Mbit/s | ~?? Mbit/s |
 
 # Installation
 
