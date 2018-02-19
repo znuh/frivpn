@@ -178,8 +178,19 @@ function vpn:new(cfg, tun)
 		res.ssl_params.user, res.ssl_params.pass = load_auth(cfg.auth)
 	end
 	
-	if posix.getuid() == 0 then
-		local chroot_en = true
+	local drop_privs = true
+	
+	if posix.getuid == nil then
+		local ph = io.popen("id","r")
+		local myid = ph:read("*a")
+		ph:close()
+		drop_privs = myid:find("^uid=0") ~= nil
+	else 	-- this needs a recent version of luaposix (>= 34.x)
+		drop_privs = posix.getuid() == 0
+	end if
+	
+	if drop_privs then		
+		local chroot_en = false 	-- disable chroot for now - non-trivial to set up
 		assert(drop_privileges(chroot_en)==chroot_en)
 	end
 	
@@ -217,8 +228,10 @@ function vpn:new(cfg, tun)
 		res.ssl:setCertificate(x509.new(res.ssl_params.certificate))
 		res.ssl:setPrivateKey(pkey.new(res.ssl_params.key))
 	end
-	
-	seccomp_filter_syscalls(syscalls,SC_RET.ALLOW,SC_RET.TRAP)
+
+	-- also disable seccomp filters for now since the list of syscalls
+	-- changes depending on library versions
+	--seccomp_filter_syscalls(syscalls,SC_RET.ALLOW,SC_RET.TRAP)
 	
 	return res
 end
