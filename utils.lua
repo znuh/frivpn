@@ -129,17 +129,58 @@ function throttle:new(rate)
 	return res
 end
 
-function tohex(buf)
+fakesock = {}
+
+function fakesock:setfd(fd)
+	self.fd=fd
+end
+
+function fakesock:getfd(fd)
+	return self.fd
+end
+
+function fakesock:new(fd)
+	local res = {}
+	setmetatable(res, self)
+	self.__index = self
+	res.fd = fd
+	return res
+end
+
+databuf = {}
+
+function databuf:get(bytes)
+	return self.data:sub(1,bytes)
+end
+
+function databuf:consume(bytes)
+	local len = bytes or #self.data
+	local res = self.data:sub(1,len)
+	self.data = self.data:sub(1+len)
+	return res
+end
+
+function databuf:new(data)
+	local res = {}
+	setmetatable(res, self)
+	self.__index = self
+	res.data = data
+	return res
+end
+
+function tohex(buf,space)
+	local md = space or 1
 	if type(buf) == "number" then
 		return string.format('%02x', buf)
 	end
 	local str = ""
 	if buf == nil then return "<nil>" end
 	for i=1,#buf do
-		str = str .. string.format('%02x ', buf:byte(i))
+		str = str .. string.format('%02x', buf:byte(i))
+		if i % md == 0 then str = str .. " " end
 	end
 	if #str > 1 then
-		str = str:sub(1, -2)
+		--str = str:sub(1, -2)
 	end
 	return str
 end
@@ -177,7 +218,7 @@ function dump_table(t,prefix)
 	if prefix == nil then prefix = " " end
 	for k,v in pairs(t) do 
 		if type(v) == "table" then dump_table(v," "..prefix..k..".")
-		else print(prefix..k.."=",v) end
+		else print(prefix..tostring(k).."=",v) end
 	end
 end
 
@@ -208,4 +249,11 @@ function file_exists(name)
 	else 
 		return false
 	end
+end
+
+function readfile(file)
+    local f = io.open(file, "r")
+    local content = f:read("*all")
+    f:close()
+    return content
 end
