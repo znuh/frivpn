@@ -9,7 +9,7 @@ local pkey = require "openssl.pkey"
 local posix = require "posix"
 
 require "ovpn"
-require "test/utils"
+require "utils"
 require "seccomp_filter"
 
 local syscalls = {
