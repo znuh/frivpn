@@ -198,7 +198,7 @@ const node_info_t queue_sink;
 const node_info_t queue_source;
 
 int chain_create(chains_t *chains, const chain_template_t *t, size_t bufsize, uint32_t n_bufs) {
-	node_t *new, *dst_node = NULL;
+	node_t *new = NULL, *dst_node = NULL;
 	chain_t *chain = calloc(1, sizeof(chain_t));
 	int last_thread = t->thread_id;
 
