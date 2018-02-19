@@ -14,11 +14,11 @@ $ make
 
 # Run it
 
-The ovpn_client expects a lua config module as the first parameter. There is an
-ipredator config provided as an example.
+The ovpn_client expects a config as the first parameter. See the
+configs directory for configuration examples.
 
 ```
-$ lua ovpn_client.lua ipredator
+$ lua ovpn_client.lua configs/ipredator
 ```
 
 # Troubleshooting & Caveats
