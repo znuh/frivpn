@@ -101,8 +101,8 @@ static void ctl_init(ovpn_t *ovpn) {
 	
 	pthread_mutex_init(&ctl->state_mtx, NULL);
 	
-	HMAC_CTX_init(&ctl->hmac_tx);
-	HMAC_CTX_init(&ctl->hmac_rx);
+	ctl->hmac_tx = HMAC_CTX_new();
+	ctl->hmac_rx = HMAC_CTX_new();
 	
 	/* initialize key contexts */
 	
@@ -113,11 +113,11 @@ static void ctl_init(ovpn_t *ovpn) {
 		
 		pthread_rwlock_init(&key->lock, NULL);
 		
-		HMAC_CTX_init(&key->hmac_rx);
-		HMAC_CTX_init(&key->hmac_tx);
+		key->hmac_rx = HMAC_CTX_new();
+		key->hmac_tx = HMAC_CTX_new();
 	
-		EVP_CIPHER_CTX_init(&key->evp_dec);
-		EVP_CIPHER_CTX_init(&key->evp_enc);
+		EVP_CIPHER_CTX_init(key->evp_dec);
+		EVP_CIPHER_CTX_init(key->evp_enc);
 	}
 	
 	/* socketpair for notifying Lua about state changes
