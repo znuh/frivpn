@@ -15,7 +15,8 @@ $ make
 # Run it
 
 The ovpn_client expects a config as the first parameter. See the
-configs directory for configuration examples.
+[configs](https://github.com/znuh/frivpn/tree/master/configs) directory for
+configuration examples.
 
 ```
 $ lua ovpn_client.lua configs/ipredator
