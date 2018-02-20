@@ -34,7 +34,6 @@ struct ctimer_s {
 };
 
 #define BUF_INUSE	(1<<0)
-#define BUF_SETUP	(1<<1)
 
 struct buf_s {
 	uint8_t *d;
@@ -49,13 +48,9 @@ struct buf_s {
 
 	/* bufstore stuff */
 	bufstore_t *owner;
-	union {
+	//union {
 		struct list_head list;
-		struct bufinfo_stream_s {
-			buf_t *free_start;	/* block of unused buffers start */
-			buf_t *free_end;	/* block of unused buffers end */
-		} si;
-	} bi;
+	//} bi;
 	uint32_t flags;
 };
 
@@ -85,27 +80,13 @@ bufqueue_t *bufqueue_create(uint32_t n_bufs);
 void bufqueue_put(bufqueue_t *q, buf_t *ib);
 buf_t *bufqueue_get(bufqueue_t *q);
 
-typedef struct bufmgmt_stream_s {
-	uint8_t *get; /* start of current frame */
-	size_t fill; /* num of bytes */
-	uint8_t *put;	/* get + fill */
-	size_t free;
-
-	uint8_t *rbuf;
-	size_t bufsz;
-
-	buf_t *bufs;
-	uint32_t n_bufs;
-	uint32_t get_idx;
-} bufmgmt_stream_t;
-
 typedef struct bufmgmt_simple_s {
 	uint8_t *bufs;
 	buf_t **stack;
 	uint32_t idx;
 } bufmgmt_simple_t;
 
-typedef enum { BS_SIMPLE, BS_STREAM} bs_type_t;
+//typedef enum { BS_SIMPLE } bs_type_t;
 
 struct bufstore_s {
 
@@ -115,18 +96,11 @@ struct bufstore_s {
 
 	uint32_t *debug;
 
-	bs_type_t type;
-	union {
-		bufmgmt_simple_t simple;
-		bufmgmt_stream_t stream;
-	} bm;
+	//bs_type_t type;
+	//union {
+	bufmgmt_simple_t bm;
+	//} bm;
 };
-
-void streamstore_reset(bufstore_t *bs);
-void *streamstore_getspace(bufstore_t *bs, size_t *sz);
-int streamstore_put(bufstore_t *bs, size_t len);
-bufstore_t *streamstore_create(size_t bufsize, uint32_t n_bufs);
-buf_t *streamstore_getbuf(bufstore_t *bs, size_t len);
 
 bufstore_t *bufstore_create(size_t bufsize, uint32_t n_bufs);
 buf_t *bufstore_getbuf(bufstore_t *bs, size_t len, int nonblock);
