@@ -13,7 +13,7 @@ in the best possible VPN bandwidth and throughput.
 | Device          | openvpn    | frivpn     |
 | --------------- | :--------: | :--------: |
 | APU.1D          | ~30 Mbit/s | ~60 Mbit/s |
-| ODROID XU4      | ~?? Mbit/s | ~80 Mbit/s |
+| ODROID XU4      | ~24 Mbit/s | ~80 Mbit/s |
 | Raspberry Pi 3  | ~?? Mbit/s | ~?? Mbit/s |
 
 # Installation
