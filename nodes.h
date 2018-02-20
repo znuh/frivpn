@@ -10,7 +10,6 @@ const node_info_t send_sink;
 const node_info_t write_sink;
 const node_info_t writev_sink;
 const node_info_t write_single;
-const node_info_t mt_write_single;
 const node_info_t read_src;
 const node_info_t recv_src;
 const node_info_t ovpn_hmac_hash;
