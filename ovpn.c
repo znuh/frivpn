@@ -58,7 +58,7 @@ static const chain_template_t from_sock[] = {
 };
 
 static const chain_template_t from_tun[] = {
-	{ "sock_write",		&write_sink,		SOCK_TX_THREAD	},	/* TODO: writev */
+	{ "sock_write",		&write_sink,		SOCK_TX_THREAD	},
 	{ "ovpn_encap",		&ovpn_encap,		SOCK_TX_THREAD	},
 
 	{ "hmac_hash",		&ovpn_hmac_hash,	ENCRYPT_THREAD	},	/* 37 us */
@@ -270,8 +270,6 @@ ovpn_t *ovpn_init(int tun_fd, uint32_t flags) {
 
 /* next:
  *
- * - fix writev buffer exhaustion deadlock
- * - new tcp_sock w/o memcpy
  * - ctl mutex
  * - verify mutex for node shutdown
  * - stall/drop policy?, nonblocking chains?
