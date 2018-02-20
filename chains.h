@@ -48,9 +48,7 @@ struct buf_s {
 
 	/* bufstore stuff */
 	bufstore_t *owner;
-	//union {
-		struct list_head list;
-	//} bi;
+	struct list_head list;
 	uint32_t flags;
 };
 
@@ -86,8 +84,6 @@ typedef struct bufmgmt_simple_s {
 	uint32_t idx;
 } bufmgmt_simple_t;
 
-//typedef enum { BS_SIMPLE } bs_type_t;
-
 struct bufstore_s {
 
 	pthread_mutex_t mtx;
@@ -96,10 +92,7 @@ struct bufstore_s {
 
 	uint32_t *debug;
 
-	//bs_type_t type;
-	//union {
 	bufmgmt_simple_t bm;
-	//} bm;
 };
 
 bufstore_t *bufstore_create(size_t bufsize, uint32_t n_bufs);
