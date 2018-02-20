@@ -17,10 +17,12 @@ set(OVPN_SOURCES chains.c ovpn.c ovpn_crypto.c ovpn_tcp_src.c ovpn_filter.c
 
 set(SECCOMP_SOURCES seccomp_lua.c)
 
+include_directories(${LUA_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${LZO_INCLUDE_DIR})
+
 add_library(ovpn SHARED ${OVPN_SOURCES})
-target_include_directories(ovpn PRIVATE ${LYA_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${LZO_INCLUDE_DIR})
+target_include_directories(ovpn PUBLIC ${LUA_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${LZO_INCLUDE_DIR})
 target_link_libraries(ovpn ${CMAKE_THREAD_LIBS_INIT} ${LUA_LIBRARIES} ${OPENSSL_LIBRARIES} ${LZO_LIBRARIES})
 
 add_library(seccomp SHARED ${SECCOMP_SOURCES})
-target_include_directories(seccomp PRIVATE ${LYA_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${LZO_INCLUDE_DIR})
+target_include_directories(seccomp PRIVATE ${LUA_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${LZO_INCLUDE_DIR})
 target_link_libraries(seccomp ${CMAKE_THREAD_LIBS_INIT} ${LUA_LIBRARIES} ${OPENSSL_LIBRARIES} ${LZO_LIBRARIES})
