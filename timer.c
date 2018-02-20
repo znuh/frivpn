@@ -39,23 +39,6 @@ time64_t chains_gettime(chains_t *chains, int precision) {
 	return res;
 }
 
-/* timer-stuff:
- * - timer_adjust (interval)
- * - timer_create(function, ctx, interval)
- * - timer_disable/enable
- * - reset (to interval)
- * - restart (reset+enable)
- */
-
-void ctimer_adjust(chains_t *chains, ctimer_t *ct, time64_t interval) {
-	assert(0);
-	//ct->interval = interval*1000000; /* convert from msec to nsec */
-}
-
-void ctimer_reset(chains_t *chains, ctimer_t *ct) {
-	assert(0);
-}
-
 void ctimer_start(chains_t *chains, ctimer_t *ct) {
 	ct->timeout = chains_gettime(chains, 0) + ct->interval;
 	ct->flags |= CTIMER_ENABLED;
@@ -77,7 +60,6 @@ ctimer_t *ctimer_create(chains_t *chains, int thread_id,
 
 	ct->work = work;
 	ct->priv = priv;
-	//ctimer_adjust(chains, ct, interval);
 	ct->interval = interval*1000000; /* convert from msec to nsec */
 	return ct;
 }

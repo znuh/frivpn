@@ -7,8 +7,6 @@
 time64_t chains_gettime(chains_t *chains, int precision);
 
 ctimer_t *ctimer_create(chains_t *chains, int thread_id, int (*work) (chains_t *chains, ctimer_t *ct, void *priv), void *priv, time64_t interval);
-//void ctimer_adjust(chains_t *chains, ctimer_t *ct, time64_t interval);
-//void ctimer_reset(chains_t *chains, ctimer_t *ct);
 void ctimer_start(chains_t *chains, ctimer_t *ct);
 void ctimer_stop(chains_t *chains, ctimer_t *ct);
 
