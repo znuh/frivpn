@@ -23,13 +23,13 @@ in the best possible VPN bandwidth and throughput.
 ### Debian (stretch)
 
 ```
-# apt install build-essential lua5.2 lua5.2-dev lua-posix lua-luaossl lua-cqueues libssl-dev liblzo2-dev
+# apt install build-essential lua5.2 lua5.2-dev lua-cliargs lua-posix lua-luaossl lua-cqueues libssl-dev liblzo2-dev
 ```
 
 ### Ubuntu 17.10
 
 ```
-# apt install build-essential lua liblua5.2-dev lua-posix lua-luaossl lua-cqueues libssl-dev liblzo2-dev
+# apt install build-essential lua liblua5.2-dev lua-cliargs lua-posix lua-luaossl lua-cqueues libssl-dev liblzo2-dev
 ```
 
 ## Build it
