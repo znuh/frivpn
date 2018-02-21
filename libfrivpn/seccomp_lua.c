@@ -105,7 +105,7 @@ static int seccomp_filter(lua_State *L) {
 	return 0;
 }
 
-LUALIB_API int luaopen_seccomp(lua_State *L)
+LUALIB_API int luaopen_libseccomp(lua_State *L)
 {
 	lua_register(L, "seccomp_filter", seccomp_filter);
 	lua_register(L, "seccomp_arch", seccomp_getarch);

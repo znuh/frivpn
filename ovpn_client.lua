@@ -8,7 +8,7 @@ local castore = require "openssl.x509.store"
 local pkey = require "openssl.pkey"
 local posix = require "posix"
 
-require "ovpn"
+require "libfrivpn"
 require "utils"
 require "seccomp_filter"
 

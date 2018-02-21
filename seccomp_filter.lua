@@ -1,4 +1,4 @@
-require "seccomp"
+require "libseccomp"
 
 local arch = nil
 local syscalls = nil
