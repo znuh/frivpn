@@ -12,13 +12,12 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - gcc-4.9
       - liblua5.2-dev
       - libssl-dev
       - liblzo2-dev
 
 before_install:
-  - if [ "$CC" = "gcc" ]; then export CC="gcc-4.9"; fi
+  - if [ "$CC" = "gcc" ]; then sudo apt-get install gcc-4.9 && export CC="gcc-4.9"; fi
 
 before_script:
   - mkdir build
