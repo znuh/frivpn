@@ -66,6 +66,14 @@ local syscalls = {
 
 }
 
+function prequire(...)
+    local status, lib = pcall(require, ...)
+        if status then
+            return lib
+        end
+    return nil
+end
+
 function lookup_ip(host)
 	local res = posix.getaddrinfo(host, 1195)
 	return res[1].addr
@@ -494,9 +502,13 @@ if not args and err then
 end
 
 -- load config
-local config = require(args["CONFIG"])
-config.port = config.port or 1195
+local config = prequire(args["CONFIG"])
+if not config then
+        print(string.format("Could not load config module %s", arg[1]))
+        os.exit(1)
+end
 
+config.port = config.port or 1195
 local tun = nil
 
 if not args["notun"] then
