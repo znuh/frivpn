@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.10)
-project(frivpn)
+project(libfrivpn)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
@@ -26,3 +26,7 @@ target_link_libraries(frivpn ${CMAKE_THREAD_LIBS_INIT} ${LUA_LIBRARIES} ${OPENSS
 add_library(seccomp SHARED ${SECCOMP_SOURCES})
 target_include_directories(seccomp PRIVATE ${LUA_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${LZO_INCLUDE_DIR})
 target_link_libraries(seccomp ${CMAKE_THREAD_LIBS_INIT} ${LUA_LIBRARIES} ${OPENSSL_LIBRARIES} ${LZO_LIBRARIES})
+
+install(TARGETS frivpn seccomp
+    LIBRARY DESTINATION lib
+)
