@@ -44,12 +44,12 @@ $ make
 
 # Run it
 
-The ovpn_client expects a config as the first parameter. See the
+The frivpn_client expects a config as the first parameter. See the
 [configs](https://github.com/znuh/frivpn/tree/master/configs) directory for
 configuration examples.
 
 ```
-$ lua ovpn_client.lua configs/ipredator
+$ ./frivpn_client.lua configs/ipredator
 ```
 
 # Troubleshooting & Caveats
