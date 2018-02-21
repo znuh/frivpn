@@ -17,6 +17,9 @@ addons:
       - libssl-dev
       - liblzo2-dev
 
+before_install:
+  - if [ "$CC" = "gcc" ]; then export CC="gcc-4.9"; fi
+
 before_script:
   - mkdir build
   - cd build
