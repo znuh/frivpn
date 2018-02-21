@@ -1,4 +1,3 @@
-
 return {
 	tlskeys = "test/ta.key",
 	key = "test/key.pem",
@@ -6,7 +5,7 @@ return {
 	cafile = "test/ca.pem",
 	netmask = 24,
 	host = "192.168.2.30",
-	--debug = 0xffff,
 	stats = true,
+	--debug = 0xffff,
 	--ignore_hmac=true,
 }
