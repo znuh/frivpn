@@ -257,3 +257,24 @@ function readfile(file)
     f:close()
     return content
 end
+
+function prettynum(num,suffix)
+	local units = {"", "k", "M", "G", "T"}
+	local idx = 1
+	local precision = 0
+	while num >= 1000 do
+		num = num / 1000
+		idx = idx + 1
+		precision = 2
+	end
+	local sfx = suffix or ""
+	if precision == 2 then
+		return string.format("%-4.2f %1s%s",num,units[idx],sfx)
+	else
+		return string.format("%4d %1s%s",num,units[idx],sfx)
+	end
+end
+
+function printable(str)
+	return str:gsub("[^%g ]","")
+end

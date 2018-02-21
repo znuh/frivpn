@@ -379,10 +379,6 @@ local function read_key(data)
 	return prfd
 end
 
-function printable(str)
-	return str:gsub("[^%g ]","")
-end
-
 function vpn:handle_tls()
 	local session = self.session
 	local part = session.tls_sock:read(-100000)
@@ -409,23 +405,6 @@ function vpn:handle_tls()
 		session.tun_configured = true
 		session.tls_complete = true
 		cqueues.cancel(session.tls_sock)
-	end
-end
-
-function prettynum(num,suffix)
-	local units = {"", "k", "M", "G", "T"}
-	local idx = 1
-	local precision = 0
-	while num >= 1000 do
-		num = num / 1000
-		idx = idx + 1
-		precision = 2
-	end
-	local sfx = suffix or ""
-	if precision == 2 then
-		return string.format("%-4.2f %1s%s",num,units[idx],sfx)
-	else
-		return string.format("%4d %1s%s",num,units[idx],sfx)
 	end
 end
 
