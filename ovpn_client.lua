@@ -187,9 +187,9 @@ function vpn:new(cfg, tun)
 		drop_privs = myid:find("^uid=0") ~= nil
 	else 	-- this needs a recent version of luaposix (>= 34.x)
 		drop_privs = posix.getuid() == 0
-	end if
-	
-	if drop_privs then		
+	end
+
+	if drop_privs then
 		local chroot_en = false 	-- disable chroot for now - non-trivial to set up
 		assert(drop_privileges(chroot_en)==chroot_en)
 	end
