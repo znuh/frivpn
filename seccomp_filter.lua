@@ -1,4 +1,4 @@
-require "libseccomp"
+require "libfrivpn_seccomp"
 
 local arch = nil
 local syscalls = nil

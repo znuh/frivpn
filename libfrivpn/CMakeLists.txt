@@ -23,10 +23,10 @@ add_library(frivpn SHARED ${FRIVPN_SOURCES})
 target_include_directories(frivpn PUBLIC ${LUA_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${LZO_INCLUDE_DIR})
 target_link_libraries(frivpn ${CMAKE_THREAD_LIBS_INIT} ${LUA_LIBRARIES} ${OPENSSL_LIBRARIES} ${LZO_LIBRARIES})
 
-add_library(seccomp SHARED ${SECCOMP_SOURCES})
-target_include_directories(seccomp PRIVATE ${LUA_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${LZO_INCLUDE_DIR})
-target_link_libraries(seccomp ${CMAKE_THREAD_LIBS_INIT} ${LUA_LIBRARIES} ${OPENSSL_LIBRARIES} ${LZO_LIBRARIES})
+add_library(frivpn_seccomp SHARED ${SECCOMP_SOURCES})
+target_include_directories(frivpn_seccomp PRIVATE ${LUA_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${LZO_INCLUDE_DIR})
+target_link_libraries(frivpn_seccomp ${CMAKE_THREAD_LIBS_INIT} ${LUA_LIBRARIES} ${OPENSSL_LIBRARIES} ${LZO_LIBRARIES})
 
-install(TARGETS frivpn seccomp
+install(TARGETS frivpn frivpn_seccomp
     LIBRARY DESTINATION lib
 )
