@@ -18,10 +18,23 @@ in the best possible VPN bandwidth and throughput.
 
 # Installation
 
-## Debian (stretch)
+## Dependencies
+
+### Debian (stretch)
 
 ```
 # apt install build-essential lua5.2 lua5.2-dev lua-posix lua-luaossl lua-cqueues libssl-dev liblzo2-dev
+```
+
+### Ubuntu 17.10
+
+```
+# apt install build-essential lua liblua5.2-dev lua-posix lua-luaossl lua-cqueues libssl-dev liblzo2-dev
+```
+
+## Build it
+
+```
 $ git clone https://github.com/znuh/frivpn.git
 $ cd frivpn
 $ make
