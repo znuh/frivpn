@@ -1,3 +1,6 @@
+-- Make sure we can load libfrivpn when being executed from the src dir
+package.cpath = package.cpath .. ';./build/libfrivpn/?.so'
+
 local cqueues = require "cqueues"
 local csock = require "cqueues.socket"
 local hmac = require "openssl.hmac"
