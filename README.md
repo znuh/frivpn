@@ -36,18 +36,20 @@ in the best possible VPN bandwidth and throughput.
 
 ```
 $ git clone https://github.com/znuh/frivpn.git
-$ cd frivpn
+$ mkdir frivpn/build
+$ cd frivpn/build
+$ cmake ..
 $ make
 ```
 
 # Run it
 
-The ovpn_client expects a config as the first parameter. See the
+The frivpn_client expects a config as the first parameter. See the
 [configs](https://github.com/znuh/frivpn/tree/master/configs) directory for
 configuration examples.
 
 ```
-$ lua ovpn_client.lua configs/ipredator
+$ ./frivpn_client.lua configs/ipredator
 ```
 
 # Troubleshooting & Caveats

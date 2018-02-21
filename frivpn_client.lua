@@ -1,3 +1,8 @@
+#!/usr/bin/env lua
+
+-- Make sure we can load libfrivpn when being executed from the src dir
+package.cpath = package.cpath .. ';./build/libfrivpn/?.so'
+
 local cqueues = require "cqueues"
 local csock = require "cqueues.socket"
 local hmac = require "openssl.hmac"
@@ -8,7 +13,7 @@ local castore = require "openssl.x509.store"
 local pkey = require "openssl.pkey"
 local posix = require "posix"
 
-require "ovpn"
+require "libfrivpn"
 require "utils"
 require "seccomp_filter"
 

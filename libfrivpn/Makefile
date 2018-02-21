@@ -7,7 +7,7 @@ SOURCES = chains.c ovpn.c ovpn_crypto.c ovpn_tcp_src.c ovpn_filter.c \
 	ovpn_encap.c ovpn_ctl.c timer.c queue.c buffer.c ovpn_lua.c
 
 OBJECTS = $(patsubst %.c, %.o, $(SOURCES))
-TARGETS = seccomp.so ovpn.so
+TARGETS = libfrivpn_seccomp.so libfrivpn.so
 
 LIBS = -lpthread -lcrypto -llzo2 -llua5.2
 INCLUDES = -I/usr/include/lua5.2
@@ -17,11 +17,11 @@ all: $(TARGETS)
 %.o:%.c
 	$(CC) $(CFLAGS) -shared -fPIC -c -o $@ $< $(INCLUDES)
 
-ovpn.so: $(OBJECTS)
-	$(CC) $(CFLAGS) -shared -fPIC -o ovpn.so $(OBJECTS) $(LIBS)
+libfrivpn.so: $(OBJECTS)
+	$(CC) $(CFLAGS) -shared -fPIC -o libfrivpn.so $(OBJECTS) $(LIBS)
 
-seccomp.so:
-	$(CC) $(CFLAGS) -shared -fPIC -o seccomp.so seccomp_lua.c $(INCLUDES) $(LIBS)
+libfrivpn_seccomp.so:
+	$(CC) $(CFLAGS) -shared -fPIC -o libfrivpn_seccomp.so seccomp_lua.c $(INCLUDES) $(LIBS)
 
 clean:
 	rm -f $(OBJECTS) $(TARGETS)

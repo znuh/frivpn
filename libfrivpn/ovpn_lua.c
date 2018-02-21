@@ -288,7 +288,7 @@ static const luaL_Reg R[] =
 	{ NULL,				NULL }
 };
 
-LUALIB_API int luaopen_ovpn(lua_State *L)
+LUALIB_API int luaopen_libfrivpn(lua_State *L)
 {
 	lua_register(L, "tun_create", maketun);
 	lua_register(L, "drop_privileges", drop_privileges);
