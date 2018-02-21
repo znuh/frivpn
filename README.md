@@ -36,7 +36,9 @@ in the best possible VPN bandwidth and throughput.
 
 ```
 $ git clone https://github.com/znuh/frivpn.git
-$ cd frivpn
+$ mkdir frivpn/build
+$ cd frivpn/build
+$ cmake ..
 $ make
 ```
 
