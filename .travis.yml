@@ -9,7 +9,7 @@ compiler:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install lua5.2-dev lua-posix lua-luaossl lua-cqueues libssl-dev liblzo2-dev
+  - sudo apt-get install liblua5.2-dev libssl-dev liblzo2-dev
 
 before_script:
   - mkdir build
