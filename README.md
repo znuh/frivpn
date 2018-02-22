@@ -1,8 +1,8 @@
 # frivpn
-A multi-threaded openvpn client (WIP)
+A multi-threaded OpenVPN client (WIP)
 
 With Raspberry Pis, ODROIDs and APUs becoming ubiquitous and cheap devices,
-they are often used and configured as VPN gateways to the Internet. openvpn
+they are often used and configured as VPN gateways to the Internet. OpenVPN
 can't use those devices to their full capacity, since it runs single-threaded
 and quickly maxes out one CPU core due to the lack of hardware-accelerated
 AES cryptography.
@@ -10,7 +10,7 @@ AES cryptography.
 frivpn is multi-threaded and runs on multiple (all) CPU cores, which results
 in the best possible VPN bandwidth and throughput.
 
-| Device          | openvpn    | frivpn     |
+| Device          | OpenVPN    | frivpn     |
 | --------------- | :--------: | :--------: |
 | APU.1D          | ~30 Mbit/s | ~60 Mbit/s |
 | ODROID XU4      | ~24 Mbit/s | ~80 Mbit/s |
@@ -62,7 +62,7 @@ $ ./frivpn_client.lua configs/ipredator
 
 # Troubleshooting & Caveats
 
-While frivpn is generally compatible with any openvpn server, it (currently)
+While frivpn is generally compatible with any OpenVPN server, it (currently)
 requires the server to be configured in the following way:
 
 - TCP protocol (no UDP support as of now)
