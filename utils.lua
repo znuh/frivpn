@@ -1,4 +1,3 @@
-
 if socket == nil then socket = require("socket") end
 
 function sleep(n)
@@ -72,20 +71,20 @@ function eta:remaining_time(jobs_done, jobs_remaining)
 	local function plural(str,val)
 		if val ~= 1 then return str.."s" else return str end
 	end
-	if days > 0 then 
-		res = days .. " "..plural("day",days)..", " 
+	if days > 0 then
+		res = days .. " "..plural("day",days)..", "
 	end
-	if hours > 0 or #res>0 then 
-		res = res .. hours .. " "..plural("hour",hours)..", " 
+	if hours > 0 or #res>0 then
+		res = res .. hours .. " "..plural("hour",hours)..", "
 	end
-	if mins > 0 or #res>0 then 
+	if mins > 0 or #res>0 then
 		res = res .. mins .. " "..plural("minute",mins)..", "
 	end
-	if secs > 0 or #res>0 then 
-		res = res .. secs .. " "..plural("second",secs)..", " 
+	if secs > 0 or #res>0 then
+		res = res .. secs .. " "..plural("second",secs)..", "
 	end
-	if #res < 1 then 
-		res = "0 seconds, " 
+	if #res < 1 then
+		res = "0 seconds, "
 	end
 	return res:sub(1, -3)
 end
@@ -187,7 +186,7 @@ end
 
 function fromhex(s)
 	if (s == nil) or (s == "<nil>") then return nil end
-	local res = string.gsub(s, "%s*(%x%x)%s*", 
+	local res = string.gsub(s, "%s*(%x%x)%s*",
 			function (h)
 				return string.char(tonumber(h, 16))
 			end)
@@ -216,7 +215,7 @@ end
 function dump_table(t,prefix)
 	local k,v
 	if prefix == nil then prefix = " " end
-	for k,v in pairs(t) do 
+	for k,v in pairs(t) do
 		if type(v) == "table" then dump_table(v," "..prefix..k..".")
 		else print(prefix..tostring(k).."=",v) end
 	end
@@ -225,7 +224,7 @@ end
 function list_funcs(p1,p2)
 	local tbl = _G
 	local str
-	if type(p1) == "table" then 
+	if type(p1) == "table" then
 		tbl = p1
 	elseif type(p1) == "string" then
 		str = p1
@@ -234,7 +233,7 @@ function list_funcs(p1,p2)
 		str = p2
 	end
 	for k,v in pairs(tbl) do
-		if type(v) == "function" and 
+		if type(v) == "function" and
 			(str == nil or string.find(k,str) ~= nil) then
 			print(k)
 		end
@@ -243,10 +242,10 @@ end
 
 function file_exists(name)
 	local f=io.open(name,"r")
-	if f ~= nil then 
+	if f ~= nil then
 		io.close(f)
-		return true 
-	else 
+		return true
+	else
 		return false
 	end
 end

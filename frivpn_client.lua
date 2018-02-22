@@ -54,15 +54,15 @@ local syscalls = {
 	"socketpair",
 	"open",
 	"lseek",
-	"_llseek", -- ARM
-	"getrandom", -- not used by ossl yet??
-	"_sysctl", -- TODO: more specific: CTL_KERN, KERN_RANDOM
+	"_llseek",      -- ARM
+	"getrandom",    -- not used by ossl yet?
+	"_sysctl",      -- TODO: more specific: CTL_KERN, KERN_RANDOM
 	"exit_group",
 	"exit",
 	"munmap",
 	"mmap2",
 	"eventfd2",
-	-- AF_ALG
+	--AF_ALG,
 	--"bind",
 	--"accept",
 
@@ -83,17 +83,17 @@ end
 function tun_fork(tun_dev, netmask, on_connected)
 	local r,w = posix.pipe()
 	local cpid = posix.fork()
-	
+
 	if cpid ~= 0 then	-- parent
 		posix.close(r)
 		return w, cpid
 	end
-	
+
 	-- child
 	posix.close(w)
-	
+
 	os.execute("/sbin/ip link set dev "..tun_dev.." up")
-	
+
 	while true do
 		local res = posix.read(r, 100)
 		if #res < 1 then break end
@@ -105,7 +105,7 @@ function tun_fork(tun_dev, netmask, on_connected)
 		end
 	end
 	posix.close(r)
-	posix._exit(0)	
+	posix._exit(0)
 end
 
 local cq = cqueues.new()
@@ -164,7 +164,7 @@ function vpn:new(cfg, tun)
 	local res = {}
 	setmetatable(res, self)
 	self.__index = self
-	
+
 	local tun_fd
 	local txkey, rxkey = load_tlskeys(cfg.tlskeys, cfg.tlskeys_ids)
 
@@ -177,17 +177,15 @@ function vpn:new(cfg, tun)
 	if cfg.key then
 		res.ssl_params.key = readfile(cfg.key)
 	end
-	
 	if cfg.certificate then
 		res.ssl_params.certificate = readfile(cfg.certificate)
 	end
-	
 	if cfg.auth then
 		res.ssl_params.user, res.ssl_params.pass = load_auth(cfg.auth)
 	end
-	
+
 	local drop_privs = true
-	
+
 	if posix.getuid == nil then
 		local ph = io.popen("id","r")
 		local myid = ph:read("*a")
@@ -201,37 +199,37 @@ function vpn:new(cfg, tun)
 		local chroot_en = false 	-- disable chroot for now - non-trivial to set up
 		assert(drop_privileges(chroot_en)==chroot_en)
 	end
-	
-	if tun then tun_fd = tun.fd end
-	
+	if tun then
+		tun_fd = tun.fd
+	end
+
 	res.my_version = "V4,dev-type tun,link-mtu 1560,tun-mtu 1500,proto TCPv4_CLIENT,comp-lzo,keydir 1,cipher AES-256-CBC,auth SHA1,keysize 256,tls-auth,key-method 2,tls-client" .. string.char(0)
-	
+
 	local ovpn, ctl_fd = ovpn{tun_fd = tun_fd, tls_txkey = txkey, tls_rxkey = rxkey, ignore_hmac = cfg.ignore_hmac}
-	
+
 	res.ovpn = ovpn
 	res.ctl_fd = ctl_fd
 	res.ctl_csock = csock.fdopen(ctl_fd)
-	
+
 	if cfg.debug then
 		ovpn:set_debug(cfg.debug)
 	end
-	
 	if cfg.stats then
 		ovpn:stats_enable(cfg.stats)
 	end
-	
+
 	res.tun = tun
 	if tun then
 		print("TUN device:", res.tun.dev)
 	end
-	
+
 	res.ca = x509.new(res.ssl_params.ca)
 	res.castore = castore.new()
 	res.castore:add(res.ca)
-	
+
 	res.ssl = ssl.new("TLSv1_2")
 	res.ssl:setVerify(ssl.VERIFY_NONE)
-	
+
 	if cfg.certificate and cfg.key then
 		res.ssl:setCertificate(x509.new(res.ssl_params.certificate))
 		res.ssl:setPrivateKey(pkey.new(res.ssl_params.key))
@@ -240,13 +238,13 @@ function vpn:new(cfg, tun)
 	-- also disable seccomp filters for now since the list of syscalls
 	-- changes depending on library versions
 	--seccomp_filter_syscalls(syscalls,SC_RET.ALLOW,SC_RET.TRAP)
-	
+
 	return res
 end
 
 function vpn:tls_start(line)
 	local session = self.session
-		
+
 	local tls_local, tls_chains = csock.pair(csock.SOCK_STREAM)
 	self.ovpn:set_tlssock(tls_chains:pollfd())
 	if self.tls_sock then
@@ -256,11 +254,11 @@ function vpn:tls_start(line)
 	self.tls_sock = tls_local
 	self.tls_chains = tls_chains
 	session.tls_sock = tls_local
-	
+
 	local succ, err = session.tls_sock:starttls(self.ssl)
 	--print("cq handshake",succ, err)
 	assert(succ)
-	
+
 	--dump_table(session.tls_sock)
 	local ssl_ctx = session.tls_sock:checktls()
 	assert(ssl_ctx)
@@ -268,21 +266,21 @@ function vpn:tls_start(line)
 	assert(peer_cert)
 	local verified, err = self.castore:verify(peer_cert)
 	assert(verified,err)
-	
+
 	session.my_sid, session.peer_sid = self.ovpn:get_sessionids()
-	
+
 	local my_prfd = {
 		pre_master = rand.bytes(48),
 		random1 = rand.bytes(32),
 		random2 = rand.bytes(32),
 	}
-	
+
 	session.my_prfd = my_prfd
 	session.peer_prfd = nil
-	
+
 	local str = packint(0,4) .. string.char(2) .. my_prfd.pre_master .. my_prfd.random1 .. my_prfd.random2
 	str = str .. packint(#self.my_version, 2) .. self.my_version
-	
+
 	-- for password authentication
 	local ssl_params = self.ssl_params
 	if ssl_params.user then
@@ -483,7 +481,6 @@ local config = require(arg[1])
 config.port = config.port or 1195
 
 local tun = nil
-
 if arg[2] ~= "notun" then
 	local status, tun_fd, tun_dev = pcall(tun_create)
 	if status then
@@ -505,7 +502,7 @@ while true do
 	client:connect(ip, config.port)
 	sleep(1)
 end
-print("lua_finish")
+print("frivpn_finish")
 
 if tun then
 	posix.close(tun.pipe)
