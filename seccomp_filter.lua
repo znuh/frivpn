@@ -1,3 +1,21 @@
+--[[
+ * Copyright (C) 2017-2018 Benedikt Heinz <Zn000h AT gmail.com>
+ *
+ * This is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This code is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this code.  If not, see <http://www.gnu.org/licenses/>.
+ */
+]]--
+
 require "libfrivpn_seccomp"
 
 local arch = nil
@@ -116,14 +134,14 @@ end
 function seccomp_filter_syscalls(sc,rc,policy)
 	assert((rc == SC_RET.KILL) or (rc == SC_RET.TRAP) or (rc == SC_RET.ALLOW)
 		or (rc == SC_RET.ERRNO) or (rc == SC_RET.TRACE))
-	assert((policy == SC_RET.KILL) or (policy == SC_RET.TRAP) or 
+	assert((policy == SC_RET.KILL) or (policy == SC_RET.TRAP) or
 		(policy == SC_RET.ALLOW) or (policy == SC_RET.ERRNO) or (policy == SC_RET.TRACE))
-	
+
 	local t = {}
-	
+
 	-- load syscall number
 	table.insert(t,bpf_stmt(BPF.LD+BPF.W+BPF.ABS, 0))
-	
+
 	for k,v in ipairs(sc) do
 		local scn = syscalls[v]
 		if type(v) == "number" then scn = v end
@@ -134,7 +152,7 @@ function seccomp_filter_syscalls(sc,rc,policy)
 			table.insert(t,bpf_stmt(BPF.RET+BPF.K, rc))
 		end
 	end
-	
+
 	-- default policy
 	table.insert(t, bpf_stmt(BPF.RET+BPF.K, policy))
 	install_filter(t)

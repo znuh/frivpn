@@ -1,6 +1,5 @@
 /*
- *
- * Copyright (C) 2017 Benedikt Heinz <Zn000h AT gmail.com>
+ * Copyright (C) 2017-2018 Benedikt Heinz <Zn000h AT gmail.com>
  *
  * This is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

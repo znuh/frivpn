@@ -1,6 +1,5 @@
 /*
- *
- * Copyright (C) 2017 Benedikt Heinz <Zn000h AT gmail.com>
+ * Copyright (C) 2017-2018 Benedikt Heinz <Zn000h AT gmail.com>
  *
  * This is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,6 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this code.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include <sys/prctl.h>
 #include <linux/unistd.h>
 #include <linux/audit.h>
