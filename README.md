@@ -71,3 +71,4 @@ requires the server to be configured in the following way:
 - tls-auth enabled
 - comp-lzo enabled
 - cipher AES-256-CBC
+- auth SHA1
