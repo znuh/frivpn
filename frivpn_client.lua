@@ -87,6 +87,11 @@ local syscalls = {
 
 }
 
+function fatal(status_code, error)
+	print(error)
+	os.exit(status_code)
+end
+
 function lookup_ip(host)
 	local res = posix.getaddrinfo(host, 1195)
 	return res[1].addr
@@ -187,14 +192,12 @@ function vpn:new(cfg, tun)
 	local tun_fd
 	local status, txkey, rxkey = pcall(load_tlskeys, cfg.tlskeys, cfg.tlskeys_ids)
 	if not status then
-		print(string.format("Could not load TLS keys from %s", cfg.tlskeys))
-		os.exit(1)
+		fatal(1, string.format("Could not load TLS keys from %s", cfg.tlskeys))
 	end
 
 	local status, ca = pcall(readfile, cfg.cafile)
 	if not status then
-		print(string.format("Could not load CA cert from %s", cfg.cafile))
-		os.exit(1)
+		fatal(1, string.format("Could not load CA cert from %s", cfg.cafile))
 	end
 
 	res.ssl_params = {
@@ -204,13 +207,25 @@ function vpn:new(cfg, tun)
 	}
 
 	if cfg.key then
-		res.ssl_params.key = readfile(cfg.key)
+		local status, key = pcall(readfile, cfg.key)
+		if not status then
+			fatal(1, string.format("Could not load key from %s", cfg.key))
+		end
+		res.ssl_params.key = key
 	end
 	if cfg.certificate then
-		res.ssl_params.certificate = readfile(cfg.certificate)
+		local status, certificate = pcall(readfile, cfg.certificate)
+		if not status then
+			fatal(1, string.format("Could not load certificate from %s", cfg.certificate))
+		end
+		res.ssl_params.certificate = certificate
 	end
 	if cfg.auth then
-		res.ssl_params.user, res.ssl_params.pass = load_auth(cfg.auth)
+		local status, user, pass = pcall(load_auth, cfg.auth)
+		if not status then
+			fatal(1, string.format("Could not load credentials from %s", cfg.auth))
+		end
+		res.ssl_params.user, res.ssl_params.pass = user, pass
 	end
 
 	local drop_privs = true
@@ -507,14 +522,12 @@ ssl_preload()
 
 -- load config
 if not arg[1] then
-	print("Usage: frivpn_client CONFIG")
-	os.exit(1)
+	fatal(1, "Usage: frivpn_client CONFIG")
 end
 local config_arg = string.gsub(arg[1], '%.lua$', '')
 local config = prequire(config_arg)
 if not config then
-	print(string.format("Could not load config module %s", arg[1]))
-	os.exit(1)
+	fatal(1, string.format("Could not load config module %s", arg[1]))
 end
 
 config.port = config.port or 1195
