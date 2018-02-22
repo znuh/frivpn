@@ -185,10 +185,20 @@ function vpn:new(cfg, tun)
 	self.__index = self
 
 	local tun_fd
-	local txkey, rxkey = load_tlskeys(cfg.tlskeys, cfg.tlskeys_ids)
+	local status, txkey, rxkey = pcall(load_tlskeys, cfg.tlskeys, cfg.tlskeys_ids)
+	if not status then
+		print(string.format("Could not load TLS keys from %s", cfg.tlskeys))
+		os.exit(1)
+	end
+
+	local status, ca = pcall(readfile, cfg.cafile)
+	if not status then
+		print(string.format("Could not load CA cert from %s", cfg.cafile))
+		os.exit(1)
+	end
 
 	res.ssl_params = {
-		ca = readfile(cfg.cafile),
+		ca = ca,
 		txkey = txkey,
 		rxkey = rxkey,
 	}
