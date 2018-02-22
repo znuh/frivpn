@@ -277,3 +277,11 @@ end
 function printable(str)
 	return str:gsub("[^%g ]","")
 end
+
+function prequire(...)
+	local status, lib = pcall(require, ...)
+	if status then
+		return lib
+	end
+	return nil
+end

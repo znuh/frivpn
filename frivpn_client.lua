@@ -477,8 +477,17 @@ end
 ssl_preload()
 
 -- load config
+if not arg[1] then
+	print("Usage: frivpn_client CONFIG")
+	os.exit(1)
+end
 local config_arg = string.gsub(arg[1], '%.lua$', '')
-local config = require(config_arg)
+local config = prequire(config_arg)
+if not config then
+	print(string.format("Could not load config module %s", arg[1]))
+	os.exit(1)
+end
+
 config.port = config.port or 1195
 
 local tun = nil
