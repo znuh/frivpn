@@ -10,11 +10,11 @@ AES cryptography.
 frivpn is multi-threaded and runs on multiple (all) CPU cores, which results
 in the best possible VPN bandwidth and throughput.
 
-| Device          | OpenVPN    | frivpn     |
-| --------------- | :--------: | :--------: |
-| APU.1D          | ~30 Mbit/s | ~60 Mbit/s |
-| ODROID XU4      | ~24 Mbit/s | ~80 Mbit/s |
-| Raspberry Pi 3  | ~?? Mbit/s | ~?? Mbit/s |
+| Device          | OpenVPN    | frivpn     | Comment                         |
+| --------------- | :--------: | :--------: | ------------------------------- |
+| APU.1D          | ~30 Mbit/s | ~60 Mbit/s | DualCore 1GHz AMD G series T40E |
+| ODROID XU4      | ~24 Mbit/s | ~80 Mbit/s | QuadCore 2GHz Cortex-A15        |
+| Raspberry Pi 3  | ~?? Mbit/s | ~?? Mbit/s | QuadCore 1.2GHz Cortex-A53      |
 
 # Installation
 
