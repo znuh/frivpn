@@ -32,6 +32,12 @@ in the best possible VPN bandwidth and throughput.
 # apt install build-essential lua liblua5.2-dev lua-posix lua-luaossl lua-cqueues libssl-dev liblzo2-dev
 ```
 
+### ArchLinux
+
+```
+# yaourt -S lua lua-posix lua-luaossl lua-cqueues openssl lzo
+```
+
 ## Build it
 
 ```
