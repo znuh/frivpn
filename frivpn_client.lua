@@ -477,7 +477,8 @@ end
 ssl_preload()
 
 -- load config
-local config = require(arg[1])
+local config_arg = string.gsub(arg[1], '%.lua$', '')
+local config = require(config_arg)
 config.port = config.port or 1195
 
 local tun = nil
