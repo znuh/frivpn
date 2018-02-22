@@ -1,0 +1,13 @@
+[Unit]
+Description=frivpn client
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/frivpn_client ${config}
+User=root
+Group=root
+RestartSec=5
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
