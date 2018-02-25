@@ -5,7 +5,8 @@ return {
 	auth = "/etc/vpn/nordvpn/nordvpn.auth",
 	netmask = 24,
 	--NordVPN Germany, please change as you like
-	host = "5.254.89.173",
+	host = "89.249.64.230",
+	port = 443,
 	on_connected = "/etc/vpn/onconnect.sh",
 	--stats = true,
 	--debug = 0xffff,
