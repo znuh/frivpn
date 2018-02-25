@@ -14,7 +14,8 @@ in the best possible VPN bandwidth and throughput.
 | --------------- | :--------: | :--------: | ------------------------------- |
 | APU.1D          | ~30 Mbit/s | ~60 Mbit/s | DualCore 1GHz AMD G series T40E |
 | ODROID XU4      | ~24 Mbit/s | ~80 Mbit/s | QuadCore 2GHz Cortex-A15        |
-| Raspberry Pi 3  | ~?? Mbit/s | ~?? Mbit/s | QuadCore 1.2GHz Cortex-A53      |
+| Raspberry Pi 3  | ~20 Mbit/s | ~?? Mbit/s | QuadCore 1.2GHz Cortex-A53      |
+| Raspberry Pi 2  | ~15 Mbit/s | ~?? Mbit/s | QuadCore 900MHz Cortex-A7       |
 
 # Installation
 
