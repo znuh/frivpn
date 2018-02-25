@@ -82,3 +82,6 @@ requires the server to be configured in the following way:
 - comp-lzo enabled
 - cipher AES-256-CBC
 - auth SHA1
+
+Found an OpenVPN-compatible service that doesn't work with frivpn yet?
+Open an issue and let us know!
