@@ -7,5 +7,5 @@ return {
 	host = "192.168.2.30",
 	stats = true,
 	--debug = 0xffff,
-	--ignore_hmac=true,
+	--ignore_hmac = true,
 }
