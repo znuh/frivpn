@@ -19,11 +19,11 @@
  */
 ]]--
 
+-- Make sure we can load libfrivpn when being executed from the src dir
+package.cpath = package.cpath .. ';./build/libfrivpn/?.so'
 -- Make sure we can load our own modules when deployed
 package.path = package.path .. ';/usr/lib/frivpn/?.lua;/usr/local/lib/frivpn/?.lua'
 package.cpath = package.cpath .. ';/usr/lib/?.so;/usr/local/lib/?.so'
--- Make sure we can load libfrivpn when being executed from the src dir
-package.cpath = package.cpath .. ';./build/libfrivpn/?.so'
 
 local cqueues = require "cqueues"
 local csock = require "cqueues.socket"
