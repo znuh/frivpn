@@ -35,7 +35,7 @@ in the best possible VPN bandwidth and throughput.
 
 ```
 # apt install build-essential cmake lua5.2 lua5.2-dev lua-posix lua-luaossl \
-              lua-cqueues libssl-dev liblzo2-dev
+              lua-cqueues lua-socket libssl-dev liblzo2-dev
 ```
 
 #### Ubuntu 17.10 (artful)
