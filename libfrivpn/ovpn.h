@@ -47,6 +47,8 @@ enum opcode_e {
 	DATA_V2			= 9,
 };
 
+#define OVPN_HMAC_KEYSIZE	20
+
 #define MAX_PENDING_ACKS	32
 
 struct prng_s {
@@ -72,6 +74,7 @@ struct crypto_stats_s {
 
 struct crypto_s {
 	struct key_s key[8];
+	int hmac_size;
 	uint32_t valid_keys;
 	int tx_key;
 	pthread_rwlock_t lock;
@@ -98,6 +101,7 @@ struct ctl_s {
 
 	int ctl_sock[2];
 
+	const EVP_MD *hmac_type;
 	HMAC_CTX *hmac_tx;
 	HMAC_CTX *hmac_rx;
 

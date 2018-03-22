@@ -149,12 +149,11 @@ static int ovpn_create(lua_State *L)
 	if(lua_isboolean(L, -2))
 		flags |= lua_toboolean(L, -2) ? OVPN_IGNORE_HMAC : 0;
 
-	if(lua_isstring(L, -1)) {
-		const char *tmp = luaL_checkstring(L, -1);
-		assert(tmp);
-		hmac_algo = strdup(tmp);
+	hmac_algo = luaL_checkstring(L, -1);
+	if(!hmac_algo) {
+		luaL_error(L, "no HMAC algo given");
 	}
-
+	
 	ctx = ovpn_init(tun_fd, flags);
 	if(!ctx) {
 		luaL_error(L, "cannot create ovpn ctx");

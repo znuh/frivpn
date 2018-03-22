@@ -48,9 +48,22 @@ int ovpn_ctl_getsock(ovpn_t *ovpn) {
 
 void ovpn_ctl_config(ovpn_t *ovpn, const char *hmac_algo, const uint8_t *hmac_txkey, const uint8_t *hmac_rxkey) {
 	struct ctl_s *ctl = &ovpn->ctl;
-	int res = HMAC_Init_ex(ctl->hmac_tx, hmac_txkey, 20, EVP_sha1(), NULL);
+	struct crypto_s *crypto = &ctl->crypto;
+	const EVP_MD *md = EVP_get_digestbyname(hmac_algo);
+	int res;
+	
+	if(!md) {
+		fprintf(stderr, "invalid HMAC algo: %s\n",hmac_algo);
+		assert(0);
+	}
+	
+	ctl->hmac_type = md;
+	crypto->hmac_size = EVP_MD_size(ctl->hmac_type);
+	assert(crypto->hmac_size > 0);
+	
+	res = HMAC_Init_ex(ctl->hmac_tx, hmac_txkey, OVPN_HMAC_KEYSIZE, ctl->hmac_type, NULL);
 	assert(res == 1);
-	res = HMAC_Init_ex(ctl->hmac_rx, hmac_rxkey, 20, EVP_sha1(), NULL);
+	res = HMAC_Init_ex(ctl->hmac_rx, hmac_rxkey, OVPN_HMAC_KEYSIZE, ctl->hmac_type, NULL);
 	assert(res == 1);
 }
 
@@ -97,7 +110,7 @@ inline uint32_t compare_hmac(const uint8_t *a, const uint8_t *b, size_t len) {
 struct ovpn_hdr_s {
 	uint8_t opcode;
 	uint64_t session_id;
-	uint8_t hmac[20];
+	uint8_t hmac[20];	/* TODO: what about SHA512? */
 	uint32_t packet_id;
 	uint32_t timestamp;
 	uint8_t ack_len;
@@ -127,10 +140,10 @@ static int ctl_hmac(HMAC_CTX *hmac, struct ovpn_hdr_s *hdr, uint32_t len, int ve
 		assert(res);
 	}
 	else {
-		uint8_t buf[20];
+		uint8_t buf[EVP_MAX_MD_SIZE];
 		res = HMAC_Final (hmac, buf, &in_hmac_len);
 		assert(res);
-		return compare_hmac(buf, hdr->hmac, 20);
+		return compare_hmac(buf, hdr->hmac, 20); /* TODO: what about SHA512? */
 	}
 	return 1;
 }
@@ -408,12 +421,12 @@ void ovpn_ctl_setkeys(ovpn_t *ovpn, const uint8_t *keys) {
 
 	res = EVP_EncryptInit_ex(key->evp_enc, EVP_aes_256_cbc(), NULL, keys, NULL);
 	assert(res == 1);
-	res = HMAC_Init_ex(key->hmac_tx, keys+64, 20, EVP_sha1(), NULL);
+	res = HMAC_Init_ex(key->hmac_tx, keys+64, OVPN_HMAC_KEYSIZE, ctl->hmac_type, NULL);
 	assert(res == 1);
 
 	res = EVP_DecryptInit_ex(key->evp_dec, EVP_aes_256_cbc(), NULL, keys+128, NULL);
 	assert(res == 1);
-	res = HMAC_Init_ex(key->hmac_rx, keys+192, 20, EVP_sha1(), NULL);
+	res = HMAC_Init_ex(key->hmac_rx, keys+192, OVPN_HMAC_KEYSIZE, ctl->hmac_type, NULL);
 	assert(res == 1);
 
 	pthread_rwlock_unlock(&key->lock);
