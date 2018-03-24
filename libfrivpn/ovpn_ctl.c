@@ -46,7 +46,7 @@ int ovpn_ctl_getsock(ovpn_t *ovpn) {
 	return ovpn->ctl.ctl_sock[1];
 }
 
-void ovpn_ctl_config(ovpn_t *ovpn, const char *hmac_algo, const uint8_t *hmac_txkey, const uint8_t *hmac_rxkey) {
+void ovpn_ctl_config(ovpn_t *ovpn, const uint8_t *hmac_txkey, const uint8_t *hmac_rxkey) {
 	struct ctl_s *ctl = &ovpn->ctl;
 	int res = HMAC_Init_ex(ctl->hmac_tx, hmac_txkey, 20, EVP_sha1(), NULL);
 	assert(res == 1);

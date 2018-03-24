@@ -137,7 +137,7 @@ ovpn_t *ovpn_init(int tun_fd, uint32_t flags);
 int ovpn_connect(ovpn_t *ovpn, const char *srv, int port);
 int ovpn_loop(ovpn_t *ovpn);
 void ovpn_finish(ovpn_t *ovpn);
-void ovpn_ctl_config(ovpn_t *ovpn, const char *hmac_algo, const uint8_t *hmac_txkey, const uint8_t *hmac_rxkey);
+void ovpn_ctl_config(ovpn_t *ovpn, const uint8_t *hmac_txkey, const uint8_t *hmac_rxkey);
 int ovpn_ctl_start(chains_t *chains, struct ctl_s *ctl);
 int ovpn_tls_getsock(ovpn_t *ovpn);
 int ovpn_ctl_getsock(ovpn_t *ovpn);

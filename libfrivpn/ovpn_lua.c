@@ -120,8 +120,7 @@ static int ovpn_create(lua_State *L)
 	ovpn_t *ctx = NULL;
 	int tun_fd = -1;
 	const char *tls_txkey = NULL, *tls_rxkey = NULL;
-	const char *hmac_algo = NULL;
-	size_t strsize;
+	size_t keysize;
 	uint32_t flags=0;
 
 	lua_settop(L, 1);
@@ -131,29 +130,22 @@ static int ovpn_create(lua_State *L)
 	lua_getfield(L, 1, "tls_txkey");
 	lua_getfield(L, 1, "tls_rxkey");
 	lua_getfield(L, 1, "ignore_hmac");
-	lua_getfield(L, 1, "hmac_algo");
 
-	if(lua_isnumber(L, -5))
-		tun_fd = lua_tonumber(L, -5);
+	if(lua_isnumber(L, -4))
+		tun_fd = lua_tonumber(L, -4);
 
-	tls_txkey = luaL_checklstring(L, -4, &strsize);
-	if(strsize != 20) {
+	tls_txkey = luaL_checklstring(L, -3, &keysize);
+	if(keysize != 20) {
 		luaL_error(L, "invalid TLS keysize");
 	}
 
-	tls_rxkey = luaL_checklstring(L, -3, &strsize);
-	if(strsize != 20) {
+	tls_rxkey = luaL_checklstring(L, -2, &keysize);
+	if(keysize != 20) {
 		luaL_error(L, "invalid TLS keysize");
 	}
 
-	if(lua_isboolean(L, -2))
-		flags |= lua_toboolean(L, -2) ? OVPN_IGNORE_HMAC : 0;
-
-	if(lua_isstring(L, -1)) {
-		const char *tmp = luaL_checkstring(L, -1);
-		assert(tmp);
-		hmac_algo = strdup(tmp);
-	}
+	if(lua_isboolean(L, -1))
+		flags |= lua_toboolean(L, -1) ? OVPN_IGNORE_HMAC : 0;
 
 	ctx = ovpn_init(tun_fd, flags);
 	if(!ctx) {
@@ -161,7 +153,7 @@ static int ovpn_create(lua_State *L)
 	}
 	else {
 		ovpn_t **p;
-		ovpn_ctl_config(ctx, hmac_algo, (const uint8_t *)tls_txkey, (const uint8_t *)tls_rxkey);
+		ovpn_ctl_config(ctx, (const uint8_t *)tls_txkey, (const uint8_t *)tls_rxkey);
 		lua_pop(L, 4);
 		p=lua_newuserdata(L,sizeof(ovpn_t*));
 		*p=ctx;
