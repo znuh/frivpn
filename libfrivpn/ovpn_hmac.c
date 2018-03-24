@@ -45,7 +45,7 @@ static int work_hash(chains_t *chains, node_t *n) {
 		goto done;
 	}
 
-	buf_prepend(ib, crypto->hmac_size);
+	buf_prepend(ib, 20);
 	res = hmac(key->hmac_tx, src, src_len, ib->ptr+1);
 
 	pthread_rwlock_unlock(&key->lock);
@@ -59,15 +59,15 @@ done:
 static int work_verify(chains_t *chains, node_t *n) {
 	struct crypto_s *crypto = n->ctx;
 	buf_t *ib = n->inbuf;
-	uint8_t hmac_buf[EVP_MAX_MD_SIZE];
+	uint8_t hmac_buf[20];
 	int res, key_id = ib->ptr[0]&7;
 	struct key_s *key;
 	const uint8_t *rcvd_hash = ib->ptr+1;
-	
-	if(ib->len < crypto->hmac_size)
+
+	if(ib->len < 20)
 		goto drop;
 
-	buf_consume(ib, crypto->hmac_size);
+	buf_consume(ib, 20);
 
 	if(crypto->flags & OVPN_IGNORE_HMAC)
 		goto done;
@@ -83,7 +83,7 @@ static int work_verify(chains_t *chains, node_t *n) {
 	pthread_rwlock_unlock(&key->lock);
 
 	assert(res == 1);
-	res = compare_hmac(rcvd_hash, hmac_buf, crypto->hmac_size);
+	res = compare_hmac(rcvd_hash,hmac_buf,20);
 	if(res) {
 		puts("HMAC mismatch - dropping buffer");
 		goto drop;
