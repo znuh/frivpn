@@ -84,7 +84,7 @@ static const chain_template_t to_tls[] = {
 /* reset needs to be sent to server upon connection start
  * -> possibility to send buf to any node from outside of chain needed */
 static chains_t *mkchains(void) {
-	chains_t *chains = chains_create(N_THREADS);
+	chains_t *chains = chains_create(N_THREADS, NULL);
 	chain_create(chains, from_sock, 2048, 128+8);
 	chain_create(chains, from_tun, 2048, 128+8);
 	chain_create(chains, from_tls, 1564, 16);	/* limit due to MTU */

@@ -15,6 +15,8 @@
  * along with this code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define _GNU_SOURCE
+
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,8 +26,8 @@
 #include <fcntl.h>
 #include <sys/eventfd.h>
 #include <sys/epoll.h>
-#include "chains.h"
 #include <assert.h>
+#include "chains.h"
 
 int fd_nonblock(int sfd) {
 	int res, flags = fcntl(sfd,F_GETFL,0);
@@ -127,11 +129,12 @@ void chains_info(chains_t *chains) {
 	puts("");
 }
 
-chains_t *chains_create(int threads) {
+chains_t *chains_create(int threads, coremap_t *cpu_cores) {
 	chains_t *c = calloc(1,sizeof(chains_t));
 	int i;
 	c->n_threads = threads;
 	c->threads = calloc(threads,sizeof(thread_t));
+	c->cpu_cores = cpu_cores;
 	INIT_LIST_HEAD(&c->nodes);
 	INIT_LIST_HEAD(&c->timers);
 	pthread_mutex_init(&c->mtx, NULL);
@@ -477,6 +480,14 @@ static void *chains_thread(void *priv) {
 	pthread_mutex_unlock(&chains->mtx);
 
 	thread = chains->threads + thread_id;
+
+	/* pin this thread to a certain set of cpu cores? */
+	if(chains->cpu_cores && (thread_id < chains->cpu_cores->n_entries)) {
+		coremap_t *cores = chains->cpu_cores;
+		res = sched_setaffinity(0, cores->cpusetsize, cores->masks + thread_id);
+		if(res)
+			fprintf(stderr,"core pinning failed for thread %d\n", thread_id);
+	}
 
 	/* special treatment for threads waiting on a pthread_cond */
 	if(thread->queue_src) {

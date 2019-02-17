@@ -18,14 +18,16 @@
 #ifndef CHAINS_H
 #define CHAINS_H
 
+#define _GNU_SOURCE
 #include <unistd.h>
 #include <stdint.h>
 #include <pthread.h>
-//#include <poll.h>
+#include <sched.h>
 
 typedef struct node_info_s node_info_t;
 typedef struct node_s node_t;
 typedef struct chains_s chains_t;
+typedef struct coremap_s coremap_t;
 typedef struct thread_s thread_t;
 typedef struct buf_s buf_t;
 typedef struct bufstore_s bufstore_t;
@@ -178,6 +180,14 @@ struct node_s {
 
 #define CHAINS_STATS_EN			(1<<0)
 
+struct coremap_s {
+	int n_entries;
+	/* this is list of multiple masks - one mask per thread.
+	 * each mask may have multiple cpu cores enabled */
+	cpu_set_t *masks;
+	size_t cpusetsize;
+};
+
 struct thread_s {
 	pthread_t thread;
 /*
@@ -215,6 +225,14 @@ struct chains_s {
 	int thread_idx;
 	thread_t *threads;
 	uint32_t n_threads;
+	
+	/* optional list of cpu core sets for thread -> cpu core pinning
+	 * thread 0 will be pinned to corelist entry 0, 1 to 1 and so on
+	 * 
+	 * the list of cpu core sets can be sorted according
+	 * to user preferences because with some architectures not all cores
+	 * are created equal (example: ARM big.LITTLE) */
+	coremap_t *cpu_cores;
 
 	/***************************/
 
@@ -234,7 +252,7 @@ struct chains_s {
 
 int chains_setup(chains_t *chains);
 void chains_info(chains_t *chains);
-chains_t *chains_create(int threads);
+chains_t *chains_create(int threads, coremap_t *cpu_cores);
 node_t *chains_findnode(chains_t *chains, const char *name);
 int chain_create(chains_t *chains, const chain_template_t *t, size_t bufsize, uint32_t n_bufs);
 void node_setctx(node_t *node, void *ctx);
