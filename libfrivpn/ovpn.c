@@ -83,8 +83,8 @@ static const chain_template_t to_tls[] = {
 
 /* reset needs to be sent to server upon connection start
  * -> possibility to send buf to any node from outside of chain needed */
-static chains_t *mkchains(void) {
-	chains_t *chains = chains_create(N_THREADS, NULL);
+static chains_t *mkchains(coremap_t *cpu_cores) {
+	chains_t *chains = chains_create(N_THREADS, cpu_cores);
 	chain_create(chains, from_sock, 2048, 128+8);
 	chain_create(chains, from_tun, 2048, 128+8);
 	chain_create(chains, from_tls, 1564, 16);	/* limit due to MTU */
@@ -218,11 +218,11 @@ void prng(struct prng_s *prng, uint8_t *dst, uint32_t len) {
 	pthread_mutex_unlock(&prng->mtx);
 }
 
-ovpn_t *ovpn_init(int tun_fd, uint32_t flags) {
+ovpn_t *ovpn_init(int tun_fd, uint32_t flags, coremap_t *cpu_cores) {
 	ovpn_t *ovpn = calloc(1,sizeof(ovpn_t));
 	struct ctl_s *ctl = &ovpn->ctl;
 	struct crypto_s *crypto = &ctl->crypto;
-	chains_t *chains = mkchains();
+	chains_t *chains = mkchains(cpu_cores);
 
 	pthread_mutex_init(&ovpn->mtx, NULL);
 

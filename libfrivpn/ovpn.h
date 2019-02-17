@@ -133,7 +133,7 @@ typedef struct ovpn_s {
 	uint32_t flags;
 } ovpn_t;
 
-ovpn_t *ovpn_init(int tun_fd, uint32_t flags);
+ovpn_t *ovpn_init(int tun_fd, uint32_t flags, coremap_t *cpu_cores);
 int ovpn_connect(ovpn_t *ovpn, const char *srv, int port);
 int ovpn_loop(ovpn_t *ovpn);
 void ovpn_finish(ovpn_t *ovpn);

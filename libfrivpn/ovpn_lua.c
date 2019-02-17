@@ -147,7 +147,7 @@ static int ovpn_create(lua_State *L)
 	if(lua_isboolean(L, -1))
 		flags |= lua_toboolean(L, -1) ? OVPN_IGNORE_HMAC : 0;
 
-	ctx = ovpn_init(tun_fd, flags);
+	ctx = ovpn_init(tun_fd, flags, NULL);
 	if(!ctx) {
 		luaL_error(L, "cannot create ovpn ctx");
 	}
