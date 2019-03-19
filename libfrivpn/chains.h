@@ -190,6 +190,8 @@ struct coremap_s {
 
 struct thread_s {
 	pthread_t thread;
+	pid_t tid; /* thread ID from kernel */
+	
 /*
 	pthread_mutex_t poll_mtx;
 	struct pollfd *pollfds[2];

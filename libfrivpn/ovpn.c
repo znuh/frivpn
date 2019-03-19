@@ -262,9 +262,9 @@ ovpn_t *ovpn_init(int tun_fd, uint32_t flags, coremap_t *cpu_cores) {
 		node_setfd(chains, chains_findnode(chains, "tun_write"), dup(tun_fd));
 	}
 
-	chains_info(chains);
-
 	chains_setup(chains);
+
+	chains_info(chains);
 
 	return ovpn;
 }

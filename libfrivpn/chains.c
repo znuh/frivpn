@@ -24,10 +24,14 @@
 #include <poll.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/types.h>
 #include <sys/eventfd.h>
 #include <sys/epoll.h>
 #include <assert.h>
 #include "chains.h"
+
+#include <sys/syscall.h>
+#define gettid() syscall(SYS_gettid)
 
 int fd_nonblock(int sfd) {
 	int res, flags = fcntl(sfd,F_GETFL,0);
@@ -119,14 +123,13 @@ void chains_info(chains_t *chains) {
 		printf("  %-32s %d %-20s %-20s\n", n->name,n->thread_id,n->ni->name,flags2str(n->ni->flags));
 		print_node_stats(chains, n);
 	}
-	puts("CPU time: ");
+	puts("threads: ");
 	for(i=0;i<chains->n_threads;i++) {
 		thread = chains->threads + i;
 		cputime = thread->total_cputime;
 		cputime /= 1000000; /* msec */
-		printf("%"PRIu64" ",cputime);
+		printf("  %d: tid=%d cputime=%"PRIu64"\n",i,thread->tid,cputime);
 	}
-	puts("");
 }
 
 chains_t *chains_create(int threads, coremap_t *cpu_cores) {
@@ -480,7 +483,10 @@ static void *chains_thread(void *priv) {
 	pthread_mutex_unlock(&chains->mtx);
 
 	thread = chains->threads + thread_id;
-
+	thread->tid = gettid();
+	
+	printf("thread %d TID %d\n",thread_id, thread->tid);
+	
 	/* pin this thread to a certain set of cpu cores? */
 	if(chains->cpu_cores && (thread_id < chains->cpu_cores->n_entries)) {
 		coremap_t *cores = chains->cpu_cores;
