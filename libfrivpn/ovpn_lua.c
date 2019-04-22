@@ -115,16 +115,51 @@ static int delete(lua_State *L)
 	return 0;
 }
 
-/* this function does nothing yet */
-static coremap_t *get_cpucores(lua_State *L, int index)
+static coremap_t *get_cpucores(lua_State *L, int index, cpu_set_t *mask)
 {
-	coremap_t *coremap = calloc(1,sizeof(coremap_t));
+	coremap_t *coremap = NULL;
 	
-	/* TODO: 
-	 * lua_gettable(L, index); 
-	 * ...
-	 * */
+	if(!mask) {
+		coremap = calloc(1,sizeof(coremap_t));
+		coremap->n_entries = lua_rawlen(L, index);
+		coremap->masks = calloc(coremap->n_entries, sizeof(cpu_set_t));
+		coremap->cpusetsize = CPU_SETSIZE;
+		// printf("%d entries\n",coremap->n_entries);
+	}
+	else {
+		CPU_ZERO(mask);
+	}
 
+	/* about 80% of the following code has been stolen from https://stackoverflow.com/a/6142700 */
+
+    lua_pushvalue(L, index);
+    // stack now contains: -1 => table
+    lua_pushnil(L);
+    // stack now contains: -1 => nil; -2 => table
+    while (lua_next(L, -2)) {
+        // stack now contains: -1 => value; -2 => key; -3 => table
+        // copy the key so that lua_tostring does not modify the original
+        lua_pushvalue(L, -2);
+        // stack now contains: -1 => key; -2 => value; -3 => key; -4 => table
+        //const char *key = lua_tostring(L, -1);
+        int key = lua_tonumber(L, -1);
+        // printf("key: %d\n",key);
+        if((!mask) && (lua_istable(L, -2)) && (key > 0) && (key <= coremap->n_entries))
+			get_cpucores(L, -2, &coremap->masks[key-1]);
+		else if ((mask) && lua_isnumber(L, -2)) {
+			int core_id = lua_tonumber(L, -2);
+			if(core_id < CPU_SETSIZE)
+				CPU_SET(core_id, mask);
+		}
+        // pop value + copy of key, leaving original key
+        lua_pop(L, 2);
+        // stack now contains: -1 => key; -2 => table
+    }
+    // stack now contains: -1 => table (when lua_next returns 0 it pops the key
+    // but does not push anything.)
+    // Pop table
+    lua_pop(L, 1);
+	 
 	return coremap;
 }
 
@@ -163,7 +198,7 @@ static int ovpn_create(lua_State *L)
 		flags |= lua_toboolean(L, -2) ? OVPN_IGNORE_HMAC : 0;
 
 	if(lua_istable(L, -1))
-		cpu_cores = get_cpucores(L, -1);
+		cpu_cores = get_cpucores(L, -1, NULL);
 
 	ctx = ovpn_init(tun_fd, flags, cpu_cores);
 	if(!ctx) {
