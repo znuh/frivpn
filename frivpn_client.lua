@@ -249,7 +249,7 @@ function vpn:new(cfg, tun)
 
 	res.my_version = "V4,dev-type tun,link-mtu 1560,tun-mtu 1500,proto TCPv4_CLIENT,comp-lzo,keydir 1,cipher AES-256-CBC,auth SHA1,keysize 256,tls-auth,key-method 2,tls-client" .. string.char(0)
 
-	local ovpn, ctl_fd = ovpn{tun_fd = tun_fd, tls_txkey = txkey, tls_rxkey = rxkey, ignore_hmac = cfg.ignore_hmac}
+	local ovpn, ctl_fd = ovpn{tun_fd = tun_fd, tls_txkey = txkey, tls_rxkey = rxkey, ignore_hmac = cfg.ignore_hmac, cpu_affinity = cfg.cpu_affinity}
 
 	res.ovpn = ovpn
 	res.ctl_fd = ctl_fd

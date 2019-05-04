@@ -11,4 +11,6 @@ return {
 	on_connected = "/etc/vpn/onconnect.sh",
 	--stats = true,
 	--debug = 0xffff,
+	-- optional: processor affinity
+	--cpu_affinity = { {0}, {1}, {2}, {3} }
 }
